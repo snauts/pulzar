@@ -64,6 +64,21 @@ static void precalculate(void) {
     }
 }
 
+static void put_char(char symbol, byte x, byte y, byte color) {
+    y = y << 3;
+    byte *addr = (byte *) 0x3C00 + (symbol << 3);
+    for (byte i = 0; i < 8; i++) {
+	map_y[y + i][x] = *addr++;
+    }
+    BYTE(0x5800 + (y << 2) + x) = color;
+}
+
+static void put_str(const char *msg, byte x, byte y, byte color) {
+    while (*msg != 0) {
+	put_char(*(msg++), x++, y, color);
+    }
+}
+
 static void draw_image(byte *img, byte x, byte y, byte w, byte h) {
     word i = 0;
     y = y << 3;
@@ -82,8 +97,23 @@ static void draw_image(byte *img, byte x, byte y, byte w, byte h) {
     }
 }
 
+static const char * const intro[] = {
+    "Tsk, tsk, once again you have",
+    "trouble with galactic police,",
+    "but this time you would rather",
+    "die than go back to the prison.",
+    "Ahead of you lies PULZAR. Only",
+    "mad man might use it's gravity",
+    "to slingshot ones ship away.",
+    "", " Will you be able to escape?",
+    "", "     Press SPACE to start",
+};
+
 static void draw_title(void) {
     draw_image(title, 4, 4, 24, 5);
+    for (byte i = 0; i < SIZE(intro); i++) {
+	put_str(intro[i], 1, 11 + i, 2);
+    }
 }
 
 void main(void) {

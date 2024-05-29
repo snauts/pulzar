@@ -14,6 +14,8 @@ typedef unsigned short word;
 #include "data.h"
 
 static volatile byte vblank;
+static byte *map_y[192];
+
 static void interrupt(void) __naked {
     __asm__("di");
     __asm__("push af");
@@ -50,11 +52,41 @@ static void wipe_screen(void) {
     memset((byte *) 0x4000, 0x00, 0x1B00);
 }
 
+static void precalculate(void) {
+    for (byte y = 0; y < 192; y++) {
+	byte f = ((y & 7) << 3) | ((y >> 3) & 7) | (y & 0xC0);
+	map_y[y] = (byte *) (0x4000 + (f << 5));
+    }
+}
+
+static void draw_image(byte *img, byte x, byte y, byte w, byte h) {
+    word i = 0;
+    y = y << 3;
+    h = h << 3;
+    for (byte dy = y; dy < y + h; dy++) {
+	byte *addr = map_y[dy] + x;
+	for (byte dx = 0; dx < w; dx++) {
+	    *addr++ = img[i++];
+	}
+    }
+
+    for (byte dy = y; dy < y + h; dy += 8) {
+	for (byte dx = x; dx < x + w; dx++) {
+	    BYTE(0x5800 + (dy << 2) + dx) = img[i++];
+	}
+    }
+}
+
+static void draw_title(void) {
+    draw_image(title, 4, 4, 24, 5);
+}
+
 void main(void) {
     SETUP_STACK();
     setup_system();
     wipe_screen();
+    precalculate();
+    draw_title();
 
-    for (;;) {
-    }
+    for (;;) { }
 }

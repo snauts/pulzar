@@ -6,6 +6,9 @@
 #include <fcntl.h>
 
 static char *file_name;
+static int color_index = 1;
+static unsigned char inkmap[256];
+static unsigned char colors[256];
 
 struct Header {
     unsigned char id;
@@ -50,37 +53,64 @@ static unsigned char consume_pixels(unsigned char *buf, unsigned char on) {
     return ret;
 }
 
-static unsigned char on_pixel(unsigned char *buf, int i, int w) {
+static void add_color(unsigned char pixel) {
+    if (pixel > 0 && inkmap[pixel] == 0) {
+	inkmap[pixel] = colors[color_index++];
+    }
+}
+
+static unsigned short on_pixel(unsigned char *buf, int i, int w) {
     unsigned char pixel = buf[i];
     for (int y = 0; y < 8; y++) {
 	for (int x = 0; x < 8; x++) {
 	    unsigned char next = buf[i + x];
 	    if (next != pixel) {
-		return next > pixel ? next : pixel;
+		add_color(next);
+		add_color(pixel);
+		return (next << 8) | pixel;
 	    }
 	}
 	i += w;
     }
-    return pixel >= 0x80 ? pixel : 0x80;
+    add_color(pixel);
+    return pixel;
+}
+
+static int ink_index(struct Header *header, int i) {
+    return (i / header->w / 8) * (header->w / 8) + i % header->w / 8;
+}
+
+static unsigned char encode_ink(unsigned short colors) {
+    unsigned char f = inkmap[colors & 0xff];
+    unsigned char b = inkmap[colors >> 8];
+    unsigned char l = (f > 7 || b > 7) ? 0x40 : 0x00;
+    return l | (f & 7) | ((b & 7) << 3);
 }
 
 static void save_bitmap(struct Header *header, unsigned char *buf, int size) {
+    int j = 0;
     char name[256];
-    unsigned char on[header->w / 8];
+    unsigned short on[size / 64];
     remove_extension(file_name, name);
-    printf("const byte %s[%d] = {\n", name, size / 8);
+    printf("const byte %s[] = {\n", name);
     for (int i = 0; i < size; i += 8) {
 	if (i / header->w % 8 == 0) {
-	    on[i % header->w / 8] = on_pixel(buf, i, header->w);
+	    on[j++] = on_pixel(buf, i, header->w);
 	}
-	printf(" 0x%02x,", consume_pixels(buf + i, on[i % header->w / 8]));
+	unsigned char pixel = on[ink_index(header, i)] & 0xff;
+	printf(" 0x%02x,", consume_pixels(buf + i, pixel));
 	if ((i % 64) == 56) printf("\n");
+    }
+    printf("\n");
+    for (int i = 0; i < size / 64; i++) {
+	printf(" 0x%02x,", encode_ink(on[i]));
+	if ((i % 8) == 7) printf("\n");
     }
     printf("};\n");
 }
 
 int main(int argc, char **argv) {
-    if (argc != 3) {
+    if (argc < 3) {
 	printf("USAGE: tga-dump [option] file.tga\n");
 	printf("  -b   save bitmap zx\n");
 	return 0;
@@ -109,6 +139,10 @@ int main(int argc, char **argv) {
 
     switch (argv[1][1]) {
     case 'b':
+	for (int i = 3; i < argc; i++) {
+	    colors[i - 2] = atoi(argv[i]);
+	}
+	memset(inkmap, 0, sizeof(inkmap));
 	save_bitmap(&header, buf, size);
 	break;
     }

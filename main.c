@@ -37,6 +37,11 @@ static void setup_irq(byte base) {
     __asm__("ei");
 }
 
+static void wait_vblank(void) {
+    while (!vblank) { }
+    vblank = 0;
+}
+
 static void memset(byte *ptr, byte data, word len) {
     while (len-- > 0) { *ptr++ = data; }
 }

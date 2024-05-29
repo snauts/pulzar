@@ -8,6 +8,7 @@ typedef unsigned short word;
 #define SIZE(array)	(sizeof(array) / sizeof(*(array)))
 
 #define SETUP_STACK()	__asm__("ld sp, #0xFDFC")
+#define SPACE_DOWN()	!(in_fe(0x7f) & 0x01)
 
 #define IRQ_BASE	0xfe00
 
@@ -63,7 +64,8 @@ static void setup_system(void) {
 }
 
 static void wipe_screen(void) {
-    memset((byte *) 0x4000, 0x00, 0x1B00);
+    memset((byte *) 0x5800, 0x00, 0x300);
+    memset((byte *) 0x4000, 0x00, 0x1800);
     out_fe(0);
 }
 
@@ -124,6 +126,7 @@ static void draw_title(void) {
     for (byte i = 0; i < SIZE(intro); i++) {
 	put_str(intro[i], 1, 10 + i, 2);
     }
+    while (!SPACE_DOWN()) { }
 }
 
 void main(void) {
@@ -131,7 +134,9 @@ void main(void) {
     setup_system();
     wipe_screen();
     precalculate();
+
     draw_title();
+    wipe_screen();
 
     for (;;) { }
 }

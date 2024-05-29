@@ -37,6 +37,15 @@ static void setup_irq(byte base) {
     __asm__("ei");
 }
 
+static void out_fe(byte data) {
+    __asm__("out (#0xfe), a"); data;
+}
+
+static byte in_fe(byte a) __naked {
+    __asm__("in a, (#0xfe)"); a;
+    __asm__("ret");
+}
+
 static void wait_vblank(void) {
     while (!vblank) { }
     vblank = 0;
@@ -55,6 +64,7 @@ static void setup_system(void) {
 
 static void wipe_screen(void) {
     memset((byte *) 0x4000, 0x00, 0x1B00);
+    out_fe(0);
 }
 
 static void precalculate(void) {
@@ -110,9 +120,9 @@ static const char * const intro[] = {
 };
 
 static void draw_title(void) {
-    draw_image(title, 4, 4, 24, 5);
+    draw_image(title, 4, 3, 24, 5);
     for (byte i = 0; i < SIZE(intro); i++) {
-	put_str(intro[i], 1, 11 + i, 2);
+	put_str(intro[i], 1, 10 + i, 2);
     }
 }
 

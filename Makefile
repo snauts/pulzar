@@ -8,6 +8,7 @@ all:
 	./tga-dump -b title.tga > data.h
 	@sdcc $(CFLAGS) main.c -o pulzar.ihx
 	hex2bin pulzar.ihx > /dev/null
+	bin2tap -b -r $(shell printf "%d" 0x$$($(ENTRY))) pulzar.bin
 
 fuse: all
 	fuse --no-confirm-actions -g 2x pulzar.tap

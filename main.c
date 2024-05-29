@@ -124,7 +124,7 @@ static const char * const intro[] = {
 static void draw_title(void) {
     draw_image(title, 4, 3, 24, 5);
     for (byte i = 0; i < SIZE(intro); i++) {
-	put_str(intro[i], 1, 10 + i, 2);
+	put_str(intro[i], 1, 10 + i, 0x42);
     }
     while (!SPACE_DOWN()) { }
 }

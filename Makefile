@@ -5,7 +5,7 @@ ENTRY = grep _main pulzar.map | cut -d " " -f 6
 
 all:
 	gcc tga-dump.c -o tga-dump
-	./tga-dump -b title.tga 2 3 6 > data.h
+	./tga-dump -b title.tga 10 11 14 > data.h
 	@sdcc $(CFLAGS) main.c -o pulzar.ihx
 	hex2bin pulzar.ihx > /dev/null
 	@make tap

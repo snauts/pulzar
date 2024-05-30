@@ -156,6 +156,8 @@ static void draw_hud(void) {
 	draw_tile(ptr, i + 1, 0x17, 0x02);
 	ptr += 8;
     }
+
+    draw_image(star, 9, 9, 6, 6);
 }
 
 void main(void) {

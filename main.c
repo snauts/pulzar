@@ -91,7 +91,7 @@ static void put_str(const char *msg, byte x, byte y, byte color) {
     }
 }
 
-static void draw_image(byte *img, byte x, byte y, byte w, byte h) {
+static void draw_image(const byte *img, byte x, byte y, byte w, byte h) {
     word i = 0;
     y = y << 3;
     h = h << 3;
@@ -109,7 +109,7 @@ static void draw_image(byte *img, byte x, byte y, byte w, byte h) {
     }
 }
 
-static void draw_tile(byte *img, byte x, byte y, byte color) {
+static void draw_tile(const byte *img, byte x, byte y, byte color) {
     word i = 0;
     y = y << 3;
     for (byte dy = y; dy < y + 8; dy++) {
@@ -151,7 +151,7 @@ static void draw_hud(void) {
 	draw_tile(edge + 0x58, 0x17, i, 0x02);
     }
 
-    byte *ptr = edge + 0x20;
+    const byte *ptr = edge + 0x20;
     for (byte i = 0; i < 4; i++) {
 	draw_tile(ptr, i + 1, 0x17, 0x02);
 	ptr += 8;

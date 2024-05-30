@@ -87,6 +87,13 @@ static unsigned char encode_ink(unsigned short colors) {
     return l | (f & 7) | ((b & 7) << 3);
 }
 
+static int has_any_color(void) {
+    for (int i = 0; i < 256; i++) {
+	if (colors[i] != 0) return 1;
+    }
+    return 0;
+}
+
 static void save_bitmap(struct Header *header, unsigned char *buf, int size) {
     int j = 0;
     char name[256];
@@ -101,10 +108,12 @@ static void save_bitmap(struct Header *header, unsigned char *buf, int size) {
 	printf(" 0x%02x,", consume_pixels(buf + i, pixel));
 	if ((i % 64) == 56) printf("\n");
     }
-    printf("\n");
-    for (int i = 0; i < size / 64; i++) {
-	printf(" 0x%02x,", encode_ink(on[i]));
-	if ((i % 8) == 7) printf("\n");
+    if (has_any_color()) {
+	printf(" /* %s attributes */\n", name);
+	for (int i = 0; i < size / 64; i++) {
+	    printf(" 0x%02x,", encode_ink(on[i]));
+	    if ((i % 8) == 7) printf("\n");
+	}
     }
     printf("};\n");
 }

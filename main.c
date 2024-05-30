@@ -143,7 +143,7 @@ static void draw_hud(void) {
     draw_tile(edge + 0x08, 0x17, 0x17, 0x10);
     draw_tile(edge + 0x10, 0x00, 0x00, 0x10);
     draw_tile(edge + 0x18, 0x17, 0x00, 0x10);
-    
+
     byte *ptr = edge + 0x20;
     for (byte i = 0; i < 4; i++) {
 	draw_tile(ptr, i + 1, 0x17, 0x02);

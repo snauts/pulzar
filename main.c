@@ -119,21 +119,21 @@ static void draw_tile(const byte *img, byte x, byte y, byte color) {
 }
 
 static const char * const intro[] = {
-    "Tsk, tsk, once again you have",
-    "trouble with galactic police,",
-    "but this time you would rather",
-    "die than go back to the prison.",
+    "Tsk, tsk, yet again you have run",
+    "into trouble with the galactic",
+    "police, but this time you would",
+    "rather die than go back to jail.",
     "Ahead of you lies PULZAR. Only",
-    "mad man might use it's gravity",
-    "to slingshot ones ship away.",
-    "", " Will you be able to escape?",
-    "", "     Press SPACE to start",
+    "a mad man might use its gravity",
+    "to slingshot one's ship away.",
+    "", "  Will you be able to escape?",
+    "", "      Press SPACE to start",
 };
 
 static void draw_title(void) {
     draw_image(title, 4, 3, 24, 5);
     for (byte i = 0; i < SIZE(intro); i++) {
-	put_str(intro[i], 1, 10 + i, 0x42);
+	put_str(intro[i], 0, 10 + i, 0x42);
     }
     while (!SPACE_DOWN()) { }
 }

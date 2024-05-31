@@ -91,6 +91,19 @@ static void put_str(const char *msg, byte x, byte y, byte color) {
     }
 }
 
+static char to_hex(byte digit) {
+    return (digit < 10) ? '0' + digit : 'A' + digit - 10;
+}
+
+static void put_num(word num, byte x, byte y, byte color) {
+    char msg[] = "0000";
+    for (byte i = 0; i < 4; i++) {
+	msg[3 - i] = to_hex(num & 0xf);
+	num = num >> 4;
+    }
+    put_str(msg, x, y, color);
+}
+
 static void draw_image(const byte *img, byte x, byte y, byte w, byte h) {
     word i = 0;
     y = y << 3;

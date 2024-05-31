@@ -179,6 +179,36 @@ static void draw_hud(void) {
     draw_image(star, 9, 9, 6, 6);
 }
 
+static word pos;
+static byte dir;
+static byte key;
+
+static void draw_ship_part(word i) {
+    i = i & 0xfff;
+    byte *ptr = (byte *) line_addr[i];
+    *ptr ^= line_data[i];
+}
+
+static void draw_whole_ship(void) {
+    draw_ship_part(pos);
+    draw_ship_part(pos + 1);
+    draw_ship_part(pos + (dir ? 32 : -32));
+}
+
+static void control_ship(void) {
+    byte now = SPACE_DOWN();
+    if (now > key) dir = 1 - dir;
+    if (dir) pos += 32; else pos -= 32;
+    pos = pos;
+    key = now;
+}
+
+static void draw_player(void) {
+    draw_whole_ship();
+    control_ship();
+    draw_whole_ship();
+}
+
 #ifdef DEBUG
 static void debug_lines(void) {
     const byte *data = line_data;
@@ -190,6 +220,22 @@ static void debug_lines(void) {
 }
 #endif
 
+static void init_vars(void) {
+    key = SPACE_DOWN();
+    pos = 24;
+    dir = 1;
+}
+
+static void game_loop(void) {
+    draw_whole_ship();
+    for (;;) {
+	wait_vblank();
+	out_fe(0x02);
+	draw_player();
+	out_fe(0x00);
+    }
+}
+
 void main(void) {
     SETUP_STACK();
     setup_system();
@@ -200,5 +246,6 @@ void main(void) {
     wipe_screen();
     draw_hud();
 
-    for (;;) { }
+    init_vars();
+    game_loop();
 }

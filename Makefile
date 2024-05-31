@@ -8,6 +8,7 @@ all:
 	./tga-dump -b title.tga 10 11 14 > data.h
 	./tga-dump -b edge.tga >> data.h
 	./tga-dump -b star.tga 10 14 15 >> data.h
+	./tga-dump -l >> data.h
 	@sdcc $(CFLAGS) main.c -o pulzar.ihx
 	hex2bin pulzar.ihx > /dev/null
 	@make tap

@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <math.h>
 
 static char *file_name;
 static int color_index = 1;
@@ -94,10 +95,24 @@ static int has_any_color(void) {
     return 0;
 }
 
+static void dump_buffer(void *ptr, int size, int step) {
+    for (int i = 0; i < size; i++) {
+	if (step == 1) {
+	    printf(" 0x%02x,", * (unsigned char *) ptr);
+	}
+	else {
+	    printf(" 0x%04x,", * (unsigned short *) ptr);
+	}
+	if ((i & 7) == 7) printf("\n");
+	ptr += step;
+    }
+}
+
 static void save_bitmap(struct Header *header, unsigned char *buf, int size) {
     int j = 0;
     char name[256];
-    unsigned short on[size / 64];
+    int attribute_size = size / 64;
+    unsigned short on[attribute_size];
     remove_extension(file_name, name);
     printf("const byte %s[] = {\n", name);
     for (int i = 0; i < size; i += 8) {
@@ -109,19 +124,52 @@ static void save_bitmap(struct Header *header, unsigned char *buf, int size) {
 	if ((i % 64) == 56) printf("\n");
     }
     if (has_any_color()) {
+	unsigned char buf[attribute_size];
 	printf(" /* %s attributes */\n", name);
-	for (int i = 0; i < size / 64; i++) {
-	    printf(" 0x%02x,", encode_ink(on[i]));
-	    if ((i % 8) == 7) printf("\n");
+	for (int i = 0; i < attribute_size; i++) {
+	    buf[i] = encode_ink(on[i]);
 	}
+	dump_buffer(buf, attribute_size, 1);
     }
     printf("};\n");
 }
 
+static unsigned short pixel_addr(int x, int y) {
+    int f = ((y & 7) << 3) | ((y >> 3) & 7) | (y & 0xc0);
+    return 0x4000 + (f << 5) + (x >> 3);
+}
+
+static unsigned char pixel_data(int x) {
+    return (1 << (7 - (x & 7)));
+}
+
+static void save_lines(void) {
+    int size = 64;
+    unsigned short line_addr[size];
+    unsigned char line_data[size];
+    for (int i = 0; i < size; i++) {
+	line_addr[i] = pixel_addr(i + 8, i + 8);
+	line_data[i] = pixel_data(i + 8);
+    }
+    printf("byte * const line_addr[] = {\n");
+    dump_buffer(line_addr, size, 2);
+    printf("};\n");
+    printf("const byte line_data[] = {\n");
+    dump_buffer(line_data, size, 1);
+    printf("};\n");
+}
+
 int main(int argc, char **argv) {
-    if (argc < 3) {
+    if (argc < 2) {
 	printf("USAGE: tga-dump [option] file.tga\n");
 	printf("  -b   save bitmap zx\n");
+	printf("  -l   save line data\n");
+	return 0;
+    }
+
+    switch (argv[1][1]) {
+    case 'l':
+	save_lines();
 	return 0;
     }
 

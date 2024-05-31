@@ -139,6 +139,8 @@ static void draw_title(void) {
 }
 
 static void draw_hud(void) {
+    memset((byte *) 0x5800, 0x02, 0x300);
+
     draw_tile(edge + 0x00, 0x00, 0x17, 0x10);
     draw_tile(edge + 0x08, 0x17, 0x17, 0x10);
     draw_tile(edge + 0x10, 0x00, 0x00, 0x10);
@@ -158,6 +160,12 @@ static void draw_hud(void) {
     }
 
     draw_image(star, 9, 9, 6, 6);
+
+    const byte *data = line_data;
+    byte * const *addr = line_addr;
+    while (addr < line_addr + SIZE(line_addr)) {
+	**(addr++) = *(data++);
+    }
 }
 
 void main(void) {

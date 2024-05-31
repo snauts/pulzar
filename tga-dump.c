@@ -60,6 +60,10 @@ static void add_color(unsigned char pixel) {
     }
 }
 
+static unsigned short encode_pixel(unsigned char a, unsigned char b) {
+    return a > b ? (b << 8) | a : (a << 8) | b;
+}
+
 static unsigned short on_pixel(unsigned char *buf, int i, int w) {
     unsigned char pixel = buf[i];
     for (int y = 0; y < 8; y++) {
@@ -68,7 +72,7 @@ static unsigned short on_pixel(unsigned char *buf, int i, int w) {
 	    if (next != pixel) {
 		add_color(next);
 		add_color(pixel);
-		return (next << 8) | pixel;
+		return encode_pixel(next, pixel);
 	    }
 	}
 	i += w;

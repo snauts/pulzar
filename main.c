@@ -140,7 +140,7 @@ static const char * const intro[] = {
     "a mad man might use its gravity",
     "to slingshot one's ship away.",
     "", "  Will you be able to escape?",
-    "", "      Press SPACE to start",
+    "", "      Press SPACE to PLAY",
 };
 
 static void draw_title(void) {

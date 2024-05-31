@@ -9,10 +9,10 @@ typedef unsigned short word;
 #define WORD(addr)	(* (volatile word *) (addr))
 #define SIZE(array)	(sizeof(array) / sizeof(*(array)))
 
-#define SETUP_STACK()	__asm__("ld sp, #0xFDFC")
+#define SETUP_STACK()	__asm__("ld sp, #0x7DFC")
 #define SPACE_DOWN()	!(in_fe(0x7f) & 0x01)
 
-#define IRQ_BASE	0xfe00
+#define IRQ_BASE	0x7e00
 
 #include "data.h"
 
@@ -59,9 +59,11 @@ static void memset(byte *ptr, byte data, word len) {
 }
 
 static void setup_system(void) {
-    BYTE(IRQ_BASE - 3) = 0xc3;
-    WORD(IRQ_BASE - 2) = ADDR(&interrupt);
-    memset((byte *) IRQ_BASE, (byte) ((IRQ_BASE >> 8) - 1), 0x101);
+    byte top = (IRQ_BASE >> 8) - 1;
+    word jmp_addr = (top << 8) | top;
+    BYTE(jmp_addr + 0) = 0xc3;
+    WORD(jmp_addr + 1) = ADDR(&interrupt);
+    memset((byte *) IRQ_BASE, top, 0x101);
     setup_irq(IRQ_BASE >> 8);
 }
 

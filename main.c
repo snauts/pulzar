@@ -2,6 +2,8 @@ typedef signed char int8;
 typedef unsigned char byte;
 typedef unsigned short word;
 
+#define DEBUG
+
 #define ADDR(obj)	((word) (obj))
 #define BYTE(addr)	(* (volatile byte *) (addr))
 #define WORD(addr)	(* (volatile word *) (addr))
@@ -91,6 +93,7 @@ static void put_str(const char *msg, byte x, byte y, byte color) {
     }
 }
 
+#ifdef DEBUG
 static char to_hex(byte digit) {
     return (digit < 10) ? '0' + digit : 'A' + digit - 10;
 }
@@ -103,6 +106,7 @@ static void put_num(word num, byte x, byte y, byte color) {
     }
     put_str(msg, x, y, color);
 }
+#endif
 
 static void draw_image(const byte *img, byte x, byte y, byte w, byte h) {
     word i = 0;
@@ -173,7 +177,10 @@ static void draw_hud(void) {
     }
 
     draw_image(star, 9, 9, 6, 6);
+}
 
+#ifdef DEBUG
+static void debug_lines(void) {
     const byte *data = line_data;
     const word *addr = line_addr;
     while (addr < line_addr + SIZE(line_addr)) {
@@ -181,6 +188,7 @@ static void draw_hud(void) {
 	*ptr |= *(data++);
     }
 }
+#endif
 
 void main(void) {
     SETUP_STACK();

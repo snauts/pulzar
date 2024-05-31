@@ -175,9 +175,10 @@ static void draw_hud(void) {
     draw_image(star, 9, 9, 6, 6);
 
     const byte *data = line_data;
-    byte * const *addr = line_addr;
+    const word *addr = line_addr;
     while (addr < line_addr + SIZE(line_addr)) {
-	**(addr++) = *(data++);
+	byte *ptr = (byte *) *(addr++);
+	*ptr |= *(data++);
     }
 }
 

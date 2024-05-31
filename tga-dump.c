@@ -143,15 +143,22 @@ static unsigned char pixel_data(int x) {
     return (1 << (7 - (x & 7)));
 }
 
+unsigned char line_data[0x10000];
+unsigned short line_addr[0x10000];
+
 static void save_lines(void) {
-    int size = 64;
-    unsigned short line_addr[size];
-    unsigned char line_data[size];
-    for (int i = 0; i < size; i++) {
-	line_addr[i] = pixel_addr(i + 8, i + 8);
-	line_data[i] = pixel_data(i + 8);
+    int size = 0;
+    for (int angle = 0; angle < 360; angle += 4) {
+	float a = 2 * M_PI * (angle / 360.0);
+	for (int step = 24; step < 24 + 64; step++) {
+	    float x = 96.0 + sin(angle) * step;
+	    float y = 96.0 + cos(angle) * step;
+	    line_addr[size] = pixel_addr(x, y);
+	    line_data[size] = pixel_data(x);
+	    size++;
+	}
     }
-    printf("byte * const line_addr[] = {\n");
+    printf("const word line_addr[] = {\n");
     dump_buffer(line_addr, size, 2);
     printf("};\n");
     printf("const byte line_data[] = {\n");

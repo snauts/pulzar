@@ -4,7 +4,7 @@ CFLAGS += --code-loc 0x8000 --data-loc 0xf000
 ENTRY = grep _main pulzar.map | cut -d " " -f 6
 
 all:
-	gcc tga-dump.c -o tga-dump
+	gcc -lm tga-dump.c -o tga-dump
 	./tga-dump -b title.tga 10 11 14 > data.h
 	./tga-dump -b edge.tga >> data.h
 	./tga-dump -b star.tga 10 14 15 >> data.h

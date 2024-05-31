@@ -186,7 +186,10 @@ static byte key;
 static void draw_ship_part(word i) {
     i = i & 0xfff;
     byte *ptr = (byte *) line_addr[i];
-    *ptr ^= line_data[i];
+    byte data = line_data[i];
+    data |= (data << 1);
+    data |= (data >> 1);
+    *ptr ^= data;
 }
 
 static void draw_whole_ship(void) {

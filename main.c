@@ -9,12 +9,12 @@ typedef unsigned short word;
 #define WORD(addr)	(* (volatile word *) (addr))
 #define SIZE(array)	(sizeof(array) / sizeof(*(array)))
 
-#define SETUP_STACK()	__asm__("ld sp, #0x7DFC")
+#define SETUP_STACK()	__asm__("ld sp, #0xFDFC")
 #define SPACE_DOWN()	!(in_fe(0x7f) & 0x01)
 
 #define LINE(x)		(byte *) (line_addr[x])
 
-#define IRQ_BASE	0x7e00
+#define IRQ_BASE	0xfe00
 
 #include "data.h"
 

@@ -12,6 +12,8 @@ typedef unsigned short word;
 #define SETUP_STACK()	__asm__("ld sp, #0x7DFC")
 #define SPACE_DOWN()	!(in_fe(0x7f) & 0x01)
 
+#define LINE(x)		(byte *) (line_addr[x])
+
 #define IRQ_BASE	0x7e00
 
 #include "data.h"
@@ -187,11 +189,10 @@ static byte key;
 
 static void draw_ship_part(word i) {
     i = i & 0xfff;
-    byte *ptr = (byte *) line_addr[i];
     byte data = line_data[i];
     data |= (data << 1);
     data |= (data >> 1);
-    *ptr ^= data;
+    *LINE(i) ^= data;
 }
 
 static void draw_whole_ship(void) {
@@ -214,19 +215,24 @@ static void draw_player(void) {
     draw_whole_ship();
 }
 
-#ifdef DEBUG
-static void debug_lines(void) {
-    const byte *data = line_data;
-    const word *addr = line_addr;
-    while (addr < line_addr + SIZE(line_addr)) {
-	byte *ptr = (byte *) *(addr++);
-	*ptr |= *(data++);
+static word ray[256];
+
+static byte head;
+static byte tail;
+
+static void draw_field(void) {
+    byte i = tail;
+    while (i != head) {
+	word r = ray[i]++;
+	*LINE(r) ^= line_data[r];
+	if ((r & 0x1f) == 0x1f) tail++;
+	i++;
     }
 }
-#endif
 
 static void init_vars(void) {
     key = SPACE_DOWN();
+    head = tail = 0;
     pos = 24;
     dir = 1;
 }
@@ -237,6 +243,7 @@ static void game_loop(void) {
 	wait_vblank();
 	out_fe(0x02);
 	draw_player();
+	draw_field();
 	out_fe(0x00);
     }
 }

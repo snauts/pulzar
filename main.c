@@ -241,14 +241,35 @@ static void control_ship(void) {
     key = now;
 }
 
+static void draw_scrap(word i) {
+    i = i & 0xfff;
+    byte prev = *LINE(i);
+    byte data = line_data[i];
+    *LINE(i) = prev ^ data;
+}
+
+static void draw_debris() {
+    if (die < 8) {
+	byte spread = die >> 1;
+	draw_scrap(pos);
+	draw_scrap(pos - spread);
+	draw_scrap(pos + spread);
+    }
+}
+
+static inline void death_clean_up(void) {
+    if (die) draw_whole_ship(1);
+}
+
 static void draw_player(void) {
     if (die == 0) {
 	draw_whole_ship(1);
 	control_ship();
 	draw_whole_ship(0);
-	if (die) draw_whole_ship(1);
+	death_clean_up();
     }
     else {
+	draw_debris();
 	move_ship();
 	die++;
     }

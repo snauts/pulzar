@@ -22,7 +22,7 @@ static volatile byte vblank;
 static byte *map_y[192];
 
 static word counter;
-static byte lives;
+static int8 lives;
 
 static word pos;
 static byte dir;
@@ -192,6 +192,10 @@ static void draw_title(void) {
     while (!SPACE_DOWN()) { }
 }
 
+static void life_sprite(byte offset, byte pos) {
+    draw_tile(edge + offset, 0x16 - pos, 0x17, 0x02);
+}
+
 static void draw_hud(void) {
     memset((byte *) 0x5800, 0x42, 0x300);
 
@@ -213,7 +217,15 @@ static void draw_hud(void) {
 	ptr += 8;
     }
 
+    for (int8 i = 0; i < lives; i++) {
+	life_sprite(0x60, i);
+    }
+
     draw_image(star, 9, 9, 6, 6);
+}
+
+static void take_life(void) {
+    if (--lives >= 0) life_sprite(0x40, lives);
 }
 
 static void draw_ship_part(word i) {
@@ -364,12 +376,12 @@ void reset(void) {
 
     draw_title();
     clear_screen();
+    reset_variables();
     draw_hud();
 
-    reset_variables();
-    while (lives > 0) {
+    while (lives >= 0) {
 	game_loop();
-	lives--;
+	take_life();
     }
     reset();
 }

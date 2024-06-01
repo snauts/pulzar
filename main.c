@@ -227,9 +227,8 @@ static void draw_ship_part(word i) {
 
 static void draw_whole_ship(byte clear_ship) {
     clr = clear_ship;
-    draw_ship_part(pos);
-    draw_ship_part(pos + 1);
     draw_ship_part(pos - 1);
+    draw_ship_part(pos + 1);
     draw_ship_part(pos + (dir ? 32 : -32));
 }
 

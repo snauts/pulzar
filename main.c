@@ -35,6 +35,8 @@ static byte r_head, r_tail;
 static word wipe[256];
 static byte w_head, w_tail;
 
+void reset(void);
+
 static void interrupt(void) __naked {
     __asm__("di");
     __asm__("push af");
@@ -248,7 +250,7 @@ static void draw_scrap(word i) {
     *LINE(i) = prev ^ data;
 }
 
-static void draw_debris() {
+static void draw_debris(void) {
     if (die < 8) {
 	byte spread = die >> (1 + (die & 1));
 	draw_scrap(pos);

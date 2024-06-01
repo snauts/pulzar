@@ -288,12 +288,12 @@ static void draw_scrap(word i) {
     *LINE(i) = prev ^ data;
 }
 
-static void draw_debris(void) {
-    if (die < 8) {
-	byte spread = die >> (1 + (die & 1));
-	draw_scrap(pos);
+static void draw_debris(byte time) {
+    if (time < 8) {
+	byte spread = time >> (1 + (time & 1));
 	draw_scrap(pos - spread);
 	draw_scrap(pos + spread);
+	draw_scrap(pos);
     }
 }
 
@@ -309,8 +309,10 @@ static void draw_player(void) {
 	death_clean_up();
     }
     else {
-	draw_debris();
-	move_ship();
+	if (counter & 1) {
+	    draw_debris(die >> 1);
+	    move_ship();
+	}
 	die++;
     }
 }

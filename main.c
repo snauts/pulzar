@@ -204,12 +204,16 @@ static const char * const intro[] = {
     "", "      Press SPACE to PLAY",
 };
 
+static void wait_space(void) {
+    while (!SPACE_DOWN()) { }
+}
+
 static void draw_title(void) {
     draw_image(title, 4, 3, 24, 5);
     for (byte i = 0; i < SIZE(intro); i++) {
 	put_str(intro[i], 0, 10 + i, 0x42);
     }
-    while (!SPACE_DOWN()) { }
+    wait_space();
 }
 
 static const char * const lose[] = {
@@ -222,7 +226,7 @@ static void game_over(void) {
     for (byte i = 0; i < SIZE(lose); i++) {
 	put_str(lose[i], 0, 12 + i, 0x42);
     }
-    while (!SPACE_DOWN()) { }
+    wait_space();
 }
 
 static void life_sprite(byte offset, byte pos) {
@@ -394,10 +398,70 @@ static void emit_reverse(void) {
     emit_whirlpool(-counter);
 }
 
+#define C4	154	// 261.6Hz
+#define D4	135	// 293.7Hz
+#define E4	120	// 329.6Hz
+#define F4	113	// 349.2Hz
+#define G4	100	// 392.0Hz
+#define A4	89	// 440.0Hz
+
+#define L2  40
+#define L4  20
+
+static const byte music[] = {
+    C4, L4, C4, L4, G4, L4, G4, L4, A4, L4, A4, L4, G4, L2,
+    F4, L4, F4, L4, E4, L4, E4, L4, D4, L4, D4, L4, C4, L2,
+    G4, L4, G4, L4, F4, L4, F4, L4, E4, L4, E4, L4, D4, L2,
+    G4, L4, G4, L4, F4, L4, F4, L4, E4, L4, E4, L4, D4, L2,
+    C4, L4, C4, L4, G4, L4, G4, L4, A4, L4, A4, L4, G4, L2,
+    F4, L4, F4, L4, E4, L4, E4, L4, D4, L4, D4, L4, C4, L2,
+    0, 0
+};
+
+static byte is_vblank_start(void) {
+    byte ret = vblank;
+    if (ret) vblank = 0;
+    return ret;
+}
+
+static void delay(word loops) {
+    for (word i = 0; i < loops; i++) { }
+}
+
 static void finish_game(void) {
+    const byte *tune = music;
+
+    byte duration = 0;
+    word period = tune[0];
+    byte decay = tune[1] >> 1;
+
     clear_screen();
     put_str("GAME COMPLETE", 9, 12, 0x42);
-    while (!SPACE_DOWN()) { }
+
+    while (!SPACE_DOWN()) {
+	if (period > 0) {
+	    out_fe(0x10);
+	    delay(period);
+	    out_fe(0x00);
+	    delay(period);
+	}
+	if (is_vblank_start()) {
+	    duration++;
+	    if (duration >= decay) {
+		period = 0;
+	    }
+	    if (duration >= tune[1]) {
+		tune += 2;
+		if (tune[1] == 0) {
+		    wait_space();
+		    break;
+		}
+		decay = tune[1] >> 1;
+		period = *tune;
+		duration = 0;
+	    }
+	}
+    }
     reset();
 }
 

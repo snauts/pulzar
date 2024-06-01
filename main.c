@@ -85,10 +85,12 @@ static void crash_sound(void) {
 }
 
 static void level_sound(void) {
+    static const byte jerk_color[] = { 10, 0, 14, 15 };
     if (flash) {
-	out_fe(0x10);
+	byte color = jerk_color[flash & 3];
+	out_fe(0x10 | color);
 	vblank_delay(flash);
-	out_fe(0x0);
+	out_fe(0x0 | color);
 	vblank_delay(flash);
     }
 }

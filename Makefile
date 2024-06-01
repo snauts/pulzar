@@ -1,7 +1,7 @@
 CFLAGS += -mz80 --nostdinc --nostdlib --no-std-crt0
 CFLAGS += --code-loc 0x8000 --data-loc 0x6000
 
-ENTRY = grep _main pulzar.map | cut -d " " -f 6
+ENTRY = grep _reset pulzar.map | cut -d " " -f 6
 
 all:
 	gcc -lm tga-dump.c -o tga-dump

@@ -302,11 +302,12 @@ static void init_vars(void) {
     counter = 0;
     pos = 28;
     dir = 1;
+    die = 0;
 }
 
 static void game_loop(void) {
     draw_whole_ship(0);
-    for (;;) {
+    while (die < 32) {
 	wait_vblank();
 	out_fe(0x02);
 	draw_player();
@@ -315,9 +316,10 @@ static void game_loop(void) {
 	counter++;
 	out_fe(0x00);
     }
+    reset();
 }
 
-void main(void) {
+void reset(void) {
     SETUP_STACK();
     setup_system();
     clear_screen();

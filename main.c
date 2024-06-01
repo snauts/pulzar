@@ -74,7 +74,7 @@ static void vblank_delay(word ticks) {
 
 static void crash_sound(void) {
     if (die && die < 8) {
-	word pitch = 16 + (die << 4);
+	word pitch = 8 + (die << 3);
 	out_fe(0x10);
 	vblank_delay(pitch);
 	out_fe(0x0);

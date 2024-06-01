@@ -339,13 +339,18 @@ static void init_wipe(void) {
 static void emit_field(void) {
     init_wipe();
     word i = (counter & 0x7f) << 5;
+    if (counter > 8 && !empty_wipe()) {
+	pop_wipe();
+	pop_wipe();
+    }
     if (counter < 512) {
 	push_wipe(i);
 	push_wipe((i + 0x800) & 0xfff);
     }
-    if (counter >= 8 && !empty_wipe()) {
-	pop_wipe();
-	pop_wipe();
+    else {
+	while (!empty_wipe()) {
+	    pop_wipe();
+	}
     }
 }
 

@@ -338,6 +338,14 @@ static void draw_field(void) {
     }
 }
 
+static inline byte empty_wipe (void) {
+    return w_head == w_tail;
+}
+
+static inline byte is_level_clear() {
+    return !die && r_tail == r_head && empty_wipe();
+}
+
 static void load_level(void);
 static void next_field(void) {
     if (flash > 0) {
@@ -345,9 +353,10 @@ static void next_field(void) {
 	if (flash == 0) {
 	    level++;
 	    load_level();
+	    counter = 0xffff;
 	}
     }
-    else if (r_tail == r_head && !die) {
+    else if (is_level_clear()) {
 	flash = 32;
     }
 }
@@ -361,19 +370,13 @@ static void pop_wipe(void) {
     ray[r_head++] = wipe[w_tail++];
 }
 
-static inline byte empty_wipe (void) {
-    return w_head == w_tail;
-}
-
-static void init_wipe(void) {
-    if (counter == 0) {
-	w_head = 0;
-	w_tail = 0;
+static void drain_wipe(void) {
+    while (!empty_wipe()) {
+	pop_wipe();
     }
 }
 
 static void emit_whirlpool(word dir) {
-    init_wipe();
     word i = (dir & 0x7f) << 5;
     if (counter > 8 && !empty_wipe()) {
 	pop_wipe();
@@ -384,9 +387,7 @@ static void emit_whirlpool(word dir) {
 	push_wipe((i + 0x800) & 0xfff);
     }
     else {
-	while (!empty_wipe()) {
-	    pop_wipe();
-	}
+	drain_wipe();
     }
 }
 
@@ -396,6 +397,18 @@ static void emit_whirler(void) {
 
 static void emit_reverse(void) {
     emit_whirlpool(-counter);
+}
+
+static void emit_divider(void) {
+    if (counter == 0) {
+	for (word i = 0; i < 32 * 8; i += 32) {
+	    push_wipe(i);
+	    push_wipe((i + 0x800) & 0xfff);
+	}
+    }
+    if (counter == 256) {
+	drain_wipe();
+    }
 }
 
 #define C4	169	// 261.6Hz
@@ -486,12 +499,12 @@ static void finish_game(void) {
 }
 
 static const struct Level level_list[] = {
-    { &emit_whirler, "/WHIRLER" },
+    { &emit_whirler, "&WHIRLER" },
     { &emit_reverse, "REVERSER" },
+    { &emit_divider, "DIVIDER/" },
 };
 
 static void load_level(void) {
-    counter = 0;
     if (level < SIZE(level_list)) {
 	put_str(level_list[level].msg, 24, level, 0x02);
 	emit_field = level_list[level].fn;
@@ -511,6 +524,8 @@ static void clear_field(void) {
 
 static void init_variables(void) {
     r_head = r_tail = 0;
+    w_head = w_tail = 0;
+    counter = 0;
     flash = 0;
     pos = 28;
     dir = 1;

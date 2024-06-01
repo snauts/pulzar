@@ -431,24 +431,24 @@ static void delay(word loops) {
 static void finish_game(void) {
     const byte *tune = music;
 
+    word offset = 0;
     byte duration = 0;
     word period = tune[0];
-    byte decay = tune[1] >> 1;
 
     clear_screen();
     put_str("GAME COMPLETE", 9, 12, 0x42);
 
     while (!SPACE_DOWN()) {
-	if (period > 0) {
+	if (period > offset) {
 	    out_fe(0x10);
-	    delay(period);
+	    delay(period - offset);
 	    out_fe(0x00);
-	    delay(period);
+	    delay(period + offset);
 	}
 	if (is_vblank_start()) {
 	    duration++;
-	    if (duration >= decay) {
-		period = 0;
+	    if (duration >= tune[1] >> 3) {
+		offset += period >> 4;
 	    }
 	    if (duration >= tune[1]) {
 		tune += 2;
@@ -456,9 +456,9 @@ static void finish_game(void) {
 		    wait_space();
 		    break;
 		}
-		decay = tune[1] >> 1;
 		period = *tune;
 		duration = 0;
+		offset = 0;
 	    }
 	}
     }

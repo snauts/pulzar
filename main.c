@@ -21,6 +21,20 @@ typedef unsigned short word;
 static volatile byte vblank;
 static byte *map_y[192];
 
+static word counter;
+
+static word pos;
+static byte dir;
+static byte key;
+static byte clr;
+static byte die;
+
+static word ray[256];
+static byte r_head, r_tail;
+
+static word wipe[256];
+static byte w_head, w_tail;
+
 static void interrupt(void) __naked {
     __asm__("di");
     __asm__("push af");
@@ -183,14 +197,6 @@ static void draw_hud(void) {
     draw_image(star, 9, 9, 6, 6);
 }
 
-static word counter;
-
-static word pos;
-static byte dir;
-static byte key;
-static byte clr;
-static byte die;
-
 static void draw_ship_part(word i) {
     i = i & 0xfff;
     byte prev = *LINE(i);
@@ -221,42 +227,32 @@ static void draw_player(void) {
     draw_whole_ship(0);
 }
 
-static word ray[256];
-
-static byte head;
-static byte tail;
-
 static void draw_field(void) {
-    byte i = tail;
-    while (i != head) {
+    byte i = r_tail;
+    while (i != r_head) {
 	word r = ray[i++]++;
 	*LINE(r) ^= line_data[r];
-	if ((r & 0x1f) == 0x1f) tail++;
+	if ((r & 0x1f) == 0x1f) r_tail++;
     }
 }
 
-static word wipe_buf[32];
-static byte wipe_head, wipe_tail;
-
-#define WIPE_MASK (SIZE(wipe_buf) - 1)
-
 static void push_wipe(word i) {
-    ray[head++] = i;
-    wipe_buf[wipe_head++ & WIPE_MASK] = i;
+    ray[r_head++] = i;
+    wipe[w_head++] = i;
 }
 
 static void pop_wipe(void) {
-    ray[head++] = wipe_buf[wipe_tail++ & WIPE_MASK];
+    ray[r_head++] = wipe[w_tail++];
 }
 
 static inline byte empty_wipe (void) {
-    return wipe_head == wipe_tail;
+    return w_head == w_tail;
 }
 
 static void init_wipe(void) {
     if (counter == 0) {
-	wipe_head = 0;
-	wipe_tail = 0;
+	w_head = 0;
+	w_tail = 0;
     }
 }
 
@@ -275,7 +271,7 @@ static void emit_field(void) {
 
 static void init_vars(void) {
     key = SPACE_DOWN();
-    head = tail = 0;
+    r_head = r_tail = 0;
     counter = 0;
     pos = 28;
     dir = 1;

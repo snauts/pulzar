@@ -39,6 +39,12 @@ static word wipe[256];
 static byte w_head, w_tail;
 
 void reset(void);
+static void (*emit_field)(void);
+
+struct Level {
+    void (*fn)(void);
+    const char *msg;
+};
 
 static void interrupt(void) __naked {
     __asm__("di");
@@ -328,11 +334,13 @@ static void draw_field(void) {
     }
 }
 
+static void load_level(void);
 static void next_field(void) {
     if (flash > 0) {
 	flash = flash - 1;
 	if (flash == 0) {
-	    counter = 0;
+	    level++;
+	    load_level();
 	}
     }
     else if (r_tail == r_head && !die) {
@@ -360,7 +368,7 @@ static void init_wipe(void) {
     }
 }
 
-static void emit_field(void) {
+static void emit_whirler(void) {
     init_wipe();
     word i = (counter & 0x7f) << 5;
     if (counter > 8 && !empty_wipe()) {
@@ -378,6 +386,28 @@ static void emit_field(void) {
     }
 }
 
+static void finish_game(void) {
+    clear_screen();
+    put_str("GAME COMPLETE", 9, 12, 0x42);
+    while (!SPACE_DOWN()) { }
+    reset();
+}
+
+static const struct Level level_list[] = {
+    { &emit_whirler, "@WHIRLER" },
+};
+
+static void load_level(void) {
+    counter = 0;
+    if (level < SIZE(level_list)) {
+	put_str(level_list[level].msg, 24, level, 0x46);
+	emit_field = level_list[level].fn;
+    }
+    else {
+	finish_game();
+    }
+}
+
 static void clear_field(void) {
     for (byte y = 0; y < 32; y++) {
 	for (word x = 0; x < 0x1000; x += 32) {
@@ -388,7 +418,6 @@ static void clear_field(void) {
 
 static void init_variables(void) {
     r_head = r_tail = 0;
-    counter = 0;
     flash = 0;
     pos = 28;
     dir = 1;
@@ -402,6 +431,7 @@ static void reset_variables(void) {
 }
 
 static void game_loop(void) {
+    load_level();
     init_variables();
     draw_whole_ship(0);
     while (die < 32) {

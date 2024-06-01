@@ -250,7 +250,7 @@ static void draw_scrap(word i) {
 
 static void draw_debris() {
     if (die < 8) {
-	byte spread = die >> 1;
+	byte spread = die >> (1 + (die & 1));
 	draw_scrap(pos);
 	draw_scrap(pos - spread);
 	draw_scrap(pos + spread);

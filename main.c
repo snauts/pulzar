@@ -183,6 +183,8 @@ static void draw_hud(void) {
     draw_image(star, 9, 9, 6, 6);
 }
 
+static word counter;
+
 static word pos;
 static byte dir;
 static byte key;
@@ -223,28 +225,46 @@ static byte tail;
 static void draw_field(void) {
     byte i = tail;
     while (i != head) {
-	word r = ray[i]++;
+	word r = ray[i++]++;
 	*LINE(r) ^= line_data[r];
 	if ((r & 0x1f) == 0x1f) tail++;
-	i++;
+    }
+}
+
+static void emit_field(void) {
+    word i = (counter & 0x7f) << 5;
+    if (counter < 512) {
+	ray[head++] = i;
+	ray[head++] = (i + 0x800) & 0xfff;
+    }
+    if (counter >= 8 && counter < 520) {
+	ray[head++] = (i - 0x100) & 0xfff;
+	ray[head++] = (i + 0x700) & 0xfff;
     }
 }
 
 static void init_vars(void) {
     key = SPACE_DOWN();
     head = tail = 0;
+    counter = 0;
     pos = 24;
     dir = 1;
 }
 
 static void game_loop(void) {
+    byte color = 0x02;
     draw_whole_ship();
     for (;;) {
 	wait_vblank();
-	out_fe(0x02);
+	out_fe(color);
 	draw_player();
 	draw_field();
+	emit_field();
+	counter++;
 	out_fe(0x00);
+	if (vblank) {
+	    color = 14;
+	}
     }
 }
 

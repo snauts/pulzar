@@ -22,6 +22,7 @@ static volatile byte vblank;
 static byte *map_y[192];
 
 static word counter;
+static byte level;
 static int8 lives;
 
 static word pos;
@@ -310,6 +311,9 @@ static void draw_field(void) {
 	*LINE(r) ^= line_data[r];
 	if ((r & 0x1f) == 0x1f) r_tail++;
     }
+    if (!die && r_tail == r_head) {
+	level++;
+    }
 }
 
 static void push_wipe(word i) {
@@ -363,6 +367,7 @@ static void init_variables(void) {
 }
 
 static void reset_variables(void) {
+    level = 0;
     lives = 5;
 }
 

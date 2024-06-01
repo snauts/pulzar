@@ -437,7 +437,7 @@ static void flash_title(void) {
 
 static const char * const outro[] = {
     " Unbelievable! You did it.",
-    "You crazy son of a Belgium.",
+    "You crazy son of a Belgium,",
     "        You did it!",
 };
 

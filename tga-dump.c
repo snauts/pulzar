@@ -155,8 +155,8 @@ static void save_lines(void) {
     for (int angle = 0; angle < 128; angle++) {
 	float a = 2 * M_PI * (angle / 128.0);
 	for (int step = 24; step < 24 + 64; step += 2) {
-	    int x = roundf(96.0 + sin(a) * step);
-	    int y = roundf(96.0 + cos(a) * step);
+	    int x = roundf(95.5 + sin(a) * (step + 1.0));
+	    int y = roundf(95.5 + cos(a) * (step + 1.0));
 	    line_addr[size] = pixel_addr(x, y);
 	    line_data[size] = pixel_data(x);
 	    size++;

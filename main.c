@@ -317,6 +317,12 @@ static void emit_field(void) {
     }
 }
 
+static void clear_field(void) {
+    for (word i = 0; i < 0x1000; i++) {
+	*LINE(i) &= ~line_data[i];
+    }
+}
+
 static void init_vars(void) {
     key = SPACE_DOWN();
     r_head = r_tail = 0;
@@ -337,6 +343,7 @@ static void game_loop(void) {
 	counter++;
 	out_fe(0x00);
     }
+    clear_field();
     reset();
 }
 

@@ -428,6 +428,13 @@ static void delay(word loops) {
     for (word i = 0; i < loops; i++) { }
 }
 
+static void flash_title(void) {
+    byte *ptr = (byte *) 0x5860;
+    while (ptr < (byte *) 0x5900) {
+	*(ptr++) ^= 0x40;
+    }
+}
+
 static void finish_game(void) {
     const byte *tune = music;
 
@@ -436,7 +443,9 @@ static void finish_game(void) {
     word period = tune[0];
 
     clear_screen();
-    put_str("GAME COMPLETE", 9, 12, 0x42);
+    put_str("GAME COMPLETE", 9, 9, 0x42);
+    draw_image(title, 4, 3, 24, 5);
+    flash_title();
 
     while (!SPACE_DOWN()) {
 	if (period > offset) {
@@ -456,6 +465,7 @@ static void finish_game(void) {
 		    wait_space();
 		    break;
 		}
+		flash_title();
 		period = *tune;
 		duration = 0;
 		offset = 0;

@@ -23,6 +23,7 @@ static byte *map_y[192];
 
 static word counter;
 static byte level;
+static byte flash;
 static int8 lives;
 
 static word pos;
@@ -83,9 +84,19 @@ static void crash_sound(void) {
     }
 }
 
+static void level_sound(void) {
+    if (flash) {
+	out_fe(0x10);
+	vblank_delay(flash);
+	out_fe(0x0);
+	vblank_delay(flash);
+    }
+}
+
 static void wait_vblank(void) {
     while (!vblank) {
 	crash_sound();
+	level_sound();
     }
     vblank = 0;
 }
@@ -311,8 +322,17 @@ static void draw_field(void) {
 	*LINE(r) ^= line_data[r];
 	if ((r & 0x1f) == 0x1f) r_tail++;
     }
-    if (!die && r_tail == r_head) {
-	level++;
+}
+
+static void next_field(void) {
+    if (flash > 0) {
+	flash = flash - 1;
+	if (flash == 0) {
+	    counter = 0;
+	}
+    }
+    else if (r_tail == r_head && !die) {
+	flash = 32;
     }
 }
 
@@ -343,7 +363,7 @@ static void emit_field(void) {
 	pop_wipe();
 	pop_wipe();
     }
-    if (counter < 512) {
+    if (counter < 256) {
 	push_wipe(i);
 	push_wipe((i + 0x800) & 0xfff);
     }
@@ -365,6 +385,7 @@ static void clear_field(void) {
 static void init_variables(void) {
     r_head = r_tail = 0;
     counter = 0;
+    flash = 0;
     pos = 28;
     dir = 1;
     key = 1;
@@ -381,12 +402,11 @@ static void game_loop(void) {
     draw_whole_ship(0);
     while (die < 32) {
 	wait_vblank();
-	out_fe(0x02);
 	draw_player();
 	emit_field();
 	draw_field();
+	next_field();
 	counter++;
-	out_fe(0x00);
     }
     clear_field();
 }

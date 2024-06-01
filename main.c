@@ -69,7 +69,7 @@ static void setup_system(void) {
     setup_irq(IRQ_BASE >> 8);
 }
 
-static void wipe_screen(void) {
+static void clear_screen(void) {
     memset((byte *) 0x5800, 0x00, 0x300);
     memset((byte *) 0x4000, 0x00, 0x1800);
     out_fe(0);
@@ -188,16 +188,20 @@ static word counter;
 static word pos;
 static byte dir;
 static byte key;
+static byte clr;
+static byte die;
 
 static void draw_ship_part(word i) {
     i = i & 0xfff;
+    byte prev = *LINE(i);
     byte data = line_data[i];
-    data |= (data << 1);
-    data |= (data >> 1);
-    *LINE(i) ^= data;
+    data |= dir ? (data << 1) : (data >> 1);
+    if (clr == !(prev & data)) die = 1;
+    *LINE(i) = prev ^ data;
 }
 
-static void draw_whole_ship(void) {
+static void draw_whole_ship(byte clear_ship) {
+    clr = clear_ship;
     draw_ship_part(pos);
     draw_ship_part(pos + 1);
     draw_ship_part(pos + (dir ? 32 : -32));
@@ -212,9 +216,9 @@ static void control_ship(void) {
 }
 
 static void draw_player(void) {
-    draw_whole_ship();
+    draw_whole_ship(1);
     control_ship();
-    draw_whole_ship();
+    draw_whole_ship(0);
 }
 
 static word ray[256];
@@ -231,15 +235,41 @@ static void draw_field(void) {
     }
 }
 
-static void emit_field(void) {
-    word i = (counter & 0x7f) << 5;
-    if (counter < 512) {
-	ray[head++] = i;
-	ray[head++] = (i + 0x800) & 0xfff;
+static word wipe_buf[32];
+static byte wipe_head, wipe_tail;
+
+#define WIPE_MASK (SIZE(wipe_buf) - 1)
+
+static void push_wipe(word i) {
+    ray[head++] = i;
+    wipe_buf[wipe_head++ & WIPE_MASK] = i;
+}
+
+static void pop_wipe(void) {
+    ray[head++] = wipe_buf[wipe_tail++ & WIPE_MASK];
+}
+
+static inline byte empty_wipe (void) {
+    return wipe_head == wipe_tail;
+}
+
+static void init_wipe(void) {
+    if (counter == 0) {
+	wipe_head = 0;
+	wipe_tail = 0;
     }
-    if (counter >= 8 && counter < 520) {
-	ray[head++] = (i - 0x100) & 0xfff;
-	ray[head++] = (i + 0x700) & 0xfff;
+}
+
+static void emit_field(void) {
+    init_wipe();
+    word i = (counter & 0x7f) << 5;
+    if (counter < 512 && !die) {
+	push_wipe(i);
+	push_wipe((i + 0x800) & 0xfff);
+    }
+    if (counter >= 8 && !empty_wipe()) {
+	pop_wipe();
+	pop_wipe();
     }
 }
 
@@ -247,35 +277,31 @@ static void init_vars(void) {
     key = SPACE_DOWN();
     head = tail = 0;
     counter = 0;
-    pos = 24;
+    pos = 28;
     dir = 1;
 }
 
 static void game_loop(void) {
-    byte color = 0x02;
-    draw_whole_ship();
+    draw_whole_ship(0);
     for (;;) {
 	wait_vblank();
-	out_fe(color);
+	out_fe(0x02);
 	draw_player();
-	draw_field();
 	emit_field();
+	draw_field();
 	counter++;
 	out_fe(0x00);
-	if (vblank) {
-	    color = 14;
-	}
     }
 }
 
 void main(void) {
     SETUP_STACK();
     setup_system();
-    wipe_screen();
+    clear_screen();
     precalculate();
 
     draw_title();
-    wipe_screen();
+    clear_screen();
     draw_hud();
 
     init_vars();

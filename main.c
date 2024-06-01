@@ -65,8 +65,24 @@ static byte in_fe(byte a) __naked {
     __asm__("ret");
 }
 
+static void vblank_delay(word ticks) {
+    for (word i = 0; i < ticks; i++) { if (vblank) break; }
+}
+
+static void crash_sound(void) {
+    if (die && die < 8) {
+	word pitch = 16 + (die << 4);
+	out_fe(0x10);
+	vblank_delay(pitch);
+	out_fe(0x0);
+	vblank_delay(pitch);
+    }
+}
+
 static void wait_vblank(void) {
-    while (!vblank) { }
+    while (!vblank) {
+	crash_sound();
+    }
     vblank = 0;
 }
 
@@ -213,18 +229,29 @@ static void draw_whole_ship(byte clear_ship) {
     draw_ship_part(pos + (dir ? 32 : -32));
 }
 
+static void move_ship(void) {
+    if (dir) pos += 32; else pos -= 32;
+}
+
 static void control_ship(void) {
     byte now = SPACE_DOWN();
     if (now > key) dir = 1 - dir;
-    if (dir) pos += 32; else pos -= 32;
+    move_ship();
     pos = pos;
     key = now;
 }
 
 static void draw_player(void) {
-    draw_whole_ship(1);
-    control_ship();
-    draw_whole_ship(0);
+    if (die == 0) {
+	draw_whole_ship(1);
+	control_ship();
+	draw_whole_ship(0);
+	if (die) draw_whole_ship(1);
+    }
+    else {
+	move_ship();
+	die++;
+    }
 }
 
 static void draw_field(void) {

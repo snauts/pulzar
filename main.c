@@ -398,12 +398,12 @@ static void emit_reverse(void) {
     emit_whirlpool(-counter);
 }
 
-#define C4	154	// 261.6Hz
-#define D4	135	// 293.7Hz
-#define E4	120	// 329.6Hz
-#define F4	113	// 349.2Hz
-#define G4	100	// 392.0Hz
-#define A4	89	// 440.0Hz
+#define C4	169	// 261.6Hz
+#define D4	146	// 293.7Hz
+#define E4	129	// 329.6Hz
+#define F4	124	// 349.2Hz
+#define G4	109	// 392.0Hz
+#define A4	96	// 440.0Hz
 
 #define L2  40
 #define L4  20

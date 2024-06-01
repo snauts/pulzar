@@ -22,6 +22,7 @@ static volatile byte vblank;
 static byte *map_y[192];
 
 static word counter;
+static byte lives;
 
 static word pos;
 static byte dir;
@@ -325,16 +326,21 @@ static void clear_field(void) {
     }
 }
 
-static void init_vars(void) {
-    key = SPACE_DOWN();
+static void init_variables(void) {
     r_head = r_tail = 0;
     counter = 0;
     pos = 28;
     dir = 1;
+    key = 1;
     die = 0;
 }
 
+static void reset_variables(void) {
+    lives = 5;
+}
+
 static void game_loop(void) {
+    init_variables();
     draw_whole_ship(0);
     while (die < 32) {
 	wait_vblank();
@@ -346,7 +352,6 @@ static void game_loop(void) {
 	out_fe(0x00);
     }
     clear_field();
-    reset();
 }
 
 void reset(void) {
@@ -359,6 +364,10 @@ void reset(void) {
     clear_screen();
     draw_hud();
 
-    init_vars();
-    game_loop();
+    reset_variables();
+    while (lives > 0) {
+	game_loop();
+	lives--;
+    }
+    reset();
 }

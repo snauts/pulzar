@@ -310,7 +310,7 @@ static void init_wipe(void) {
 static void emit_field(void) {
     init_wipe();
     word i = (counter & 0x7f) << 5;
-    if (counter < 512 && !die) {
+    if (counter < 512) {
 	push_wipe(i);
 	push_wipe((i + 0x800) & 0xfff);
     }
@@ -321,8 +321,10 @@ static void emit_field(void) {
 }
 
 static void clear_field(void) {
-    for (word i = 0; i < 0x1000; i++) {
-	*LINE(i) &= ~line_data[i];
+    for (byte y = 0; y < 32; y++) {
+	for (word x = 0; x < 0x1000; x += 32) {
+	    *LINE(x + y) &= ~line_data[x + y];
+	}
     }
 }
 

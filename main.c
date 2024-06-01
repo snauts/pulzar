@@ -435,6 +435,12 @@ static void flash_title(void) {
     }
 }
 
+static const char * const outro[] = {
+    " Unbelievable! You did it.",
+    "You crazy son of a Belgium.",
+    "        You did it!",
+};
+
 static void finish_game(void) {
     const byte *tune = music;
 
@@ -443,9 +449,13 @@ static void finish_game(void) {
     word period = tune[0];
 
     clear_screen();
-    put_str("GAME COMPLETE", 9, 9, 0x42);
+    put_str("GAME COMPLETE", 9, 12, 0x42);
     draw_image(title, 4, 3, 24, 5);
     flash_title();
+
+    for (byte i = 0; i < SIZE(outro); i++) {
+	put_str(outro[i], 2, 17 + i, 0x42);
+    }
 
     while (!SPACE_DOWN()) {
 	if (period > offset) {

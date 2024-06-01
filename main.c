@@ -192,6 +192,19 @@ static void draw_title(void) {
     while (!SPACE_DOWN()) { }
 }
 
+static const char * const lose[] = {
+    "All of us are cosmic dust, but",
+    "some more literally than others.",
+};
+
+static void game_over(void) {
+    put_str("GAME OVER", 11, 10, 0x42);
+    for (byte i = 0; i < SIZE(lose); i++) {
+	put_str(lose[i], 0, 12 + i, 0x42);
+    }
+    while (!SPACE_DOWN()) { }
+}
+
 static void life_sprite(byte offset, byte pos) {
     draw_tile(edge + offset, 0x16 - pos, 0x17, 0x02);
 }
@@ -383,5 +396,7 @@ void reset(void) {
 	game_loop();
 	take_life();
     }
+    clear_screen();
+    game_over();
     reset();
 }

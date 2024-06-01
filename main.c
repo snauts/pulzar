@@ -368,9 +368,9 @@ static void init_wipe(void) {
     }
 }
 
-static void emit_whirler(void) {
+static void emit_whirlpool(word dir) {
     init_wipe();
-    word i = (counter & 0x7f) << 5;
+    word i = (dir & 0x7f) << 5;
     if (counter > 8 && !empty_wipe()) {
 	pop_wipe();
 	pop_wipe();
@@ -386,6 +386,14 @@ static void emit_whirler(void) {
     }
 }
 
+static void emit_whirler(void) {
+    emit_whirlpool(counter);
+}
+
+static void emit_reverse(void) {
+    emit_whirlpool(-counter);
+}
+
 static void finish_game(void) {
     clear_screen();
     put_str("GAME COMPLETE", 9, 12, 0x42);
@@ -394,13 +402,14 @@ static void finish_game(void) {
 }
 
 static const struct Level level_list[] = {
-    { &emit_whirler, "@WHIRLER" },
+    { &emit_whirler, "/WHIRLER" },
+    { &emit_reverse, "REVERSER" },
 };
 
 static void load_level(void) {
     counter = 0;
     if (level < SIZE(level_list)) {
-	put_str(level_list[level].msg, 24, level, 0x46);
+	put_str(level_list[level].msg, 24, level, 0x02);
 	emit_field = level_list[level].fn;
     }
     else {

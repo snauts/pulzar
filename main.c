@@ -663,7 +663,7 @@ static void emit_gamma(void) {
 }
 
 static void emit_curve(void) {
-    load_generated(4, curve);
+    load_generated(2, curve);
 }
 
 static const struct Level level_list[] = {

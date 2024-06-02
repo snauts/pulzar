@@ -303,14 +303,21 @@ static int gamma_rain(void) {
 
 static int curve(void) {
     int offset = 0;
-    for (unsigned y = 0; y < 64; y++) {
+    for (unsigned y = 0; y < 128; y++) {
 	for (unsigned x = 0; x < 128; x++) {
 	    float offset = 16.0 * sin(2 * M_PI * y / 64.0);
 	    unfold[x][y] = roundf(32.0 - offset) < x
 		&& x < roundf(96.0 + offset);
 	}
+	unsigned char buf[128];
+	for (unsigned x = 0; x < 128; x++) {
+	    buf[x] = unfold[(x + y) % 128][y];
+	}
+	for (unsigned x = 0; x < 128; x++) {
+	    unfold[x][y] = buf[x];
+	}
     }
-    return 64;
+    return 128;
 }
 
 static void save_game(void) {

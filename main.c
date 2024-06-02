@@ -559,10 +559,15 @@ static void hyperspace_streaks(word *lines, byte clear) {
 	vblank = 0;
 	for (byte i = 0; i < 3; i++) {
 	    word addr = lines[i];
+	    if (j > 9 - i) break;
 	    if (dir) addr += j; else addr -= j;
-	    BYTE(addr) = clear ? 0 : (i == 1 ? 0xff : 0x7e);
+	    BYTE(addr) = clear ? 0 : 0xff;
 	}
     }
+}
+
+static word addr_of(word i) {
+    return line_addr[i & 0xfff];
 }
 
 static void emit_slinger(void) {
@@ -580,10 +585,9 @@ static void emit_slinger(void) {
 	close += 16;
     }
     word lines[3];
-    word x = ((pos - 1) & 0xfff);
-    for (byte i = 0; i < SIZE(lines); i++) {
-	lines[i] = line_addr[x + i];
-    }
+    lines[0] = addr_of(pos + (dir ? 32 : -32));
+    lines[1] = addr_of(pos - 1);
+    lines[2] = addr_of(pos + 1);
     hyperspace_streaks(lines, 0);
     hyperspace_streaks(lines, 1);
     for (byte i = 0; i < 50; i++) {

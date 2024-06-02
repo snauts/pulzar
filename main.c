@@ -673,7 +673,7 @@ static const struct Level level_list[] = {
     { &emit_whirler, "&WHIRLER" },
     { &emit_reverse, "REVERSER" },
     { &emit_squigle, "SQUIGGLY" },
-    { &emit_slinger, "SLINGER>" },
+    { &emit_slinger, "-SLING->" },
 };
 
 static void load_level(void) {

@@ -176,6 +176,7 @@ unsigned char level[sizeof(unfold)];
 
 static int get_diff(unsigned char *diff, int y, int height) {
     int n = 0;
+    y = y % height;
     for (int x = 0; x < 128; x++) {
 	if (unfold[x][y] != unfold[x][(y - 1) % height]) diff[n++] = x;
     }
@@ -191,7 +192,9 @@ static int get_line(unsigned char *diff, int y) {
 }
 
 static void save_diff(unsigned char *diff, int amount, int *index, int wait) {
-    level[(*index)++] = wait;
+    if (wait >= 0) {
+	level[(*index)++] = wait;
+    }
     level[(*index)++] = amount;
     for (int i = 0; i < amount; i++) {
 	level[(*index)++] = diff[i];
@@ -199,11 +202,13 @@ static void save_diff(unsigned char *diff, int amount, int *index, int wait) {
 }
 
 static int serialize(int height) {
+    int amount;
     int wait = 1;
     int index = 0;
     unsigned char diff[128];
-    for (int y = 0; y < height; y++) {
-	int amount = y == 0 ? get_line(diff, y) : get_diff(diff, y, height);
+    save_diff(diff, get_line(diff, 0), &index, -1);
+    for (int y = 1; y <= height; y++) {
+	amount = get_diff(diff, y, height);
 	if (amount > 0) {
 	    save_diff(diff, amount, &index, wait);
 	    wait = 1;
@@ -212,7 +217,7 @@ static int serialize(int height) {
 	    wait++;
 	}
     }
-    save_diff(diff, get_diff(diff, 0, height), &index, 0);
+    if (wait > 1) save_diff(diff, amount, &index, wait);
     save_diff(diff, get_line(diff, height - 1), &index, 0);
     return index;
 }

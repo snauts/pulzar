@@ -176,10 +176,11 @@ unsigned char unfold[128][512];
 unsigned char level[sizeof(unfold)];
 
 static int get_diff(unsigned char *diff, unsigned y, int height) {
-    int n = 0;
+    int i, n = 0;
     y = y % height;
     for (int x = 0; x < 128; x++) {
-	if (unfold[x][y] != unfold[x][(y - 1) % height]) diff[n++] = x;
+	i = (y + height - 1) % height;
+	if (unfold[x][y] != unfold[x][i]) diff[n++] = x;
     }
     return n;
 }

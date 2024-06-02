@@ -342,7 +342,6 @@ static void control_ship(void) {
     byte now = SPACE_DOWN();
     if (now > key) dir = 1 - dir;
     move_ship();
-    pos = pos;
     key = now;
 }
 

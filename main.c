@@ -318,12 +318,17 @@ static void take_life(void) {
     if (--lives >= 0) life_sprite(0x40, lives);
 }
 
+static inline byte check_collision(byte prev, byte data) {
+    byte mask = prev & data;
+    return clr ? mask != data : mask;
+}
+
 static void draw_ship_part(word i) {
     i = i & 0xfff;
     byte prev = *LINE(i);
     byte data = line_data[i];
     data |= dir ? (data << 1) : (data >> 1);
-    if (clr == !(prev & data)) die = 1;
+    if (check_collision(prev, data)) die = 1;
     *LINE(i) = prev ^ data;
 }
 

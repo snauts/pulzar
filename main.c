@@ -237,19 +237,47 @@ static void life_sprite(byte offset, byte pos) {
     draw_tile(edge + offset, 0x16 - pos, 0x17, 0x02);
 }
 
+static byte *attribute_addr(byte x, byte y) {
+    return (byte *) 0x5800 + ((y & ~7) << 2) + x;
+}
+
 static void flip_V(byte x1, byte y1, byte x2, byte y2, byte w, byte h) {
-    x1 = x1 >> 3;
-    x2 = x2 >> 3;
     for (byte j = 0; j < h; j++) {
 	word z1 = y1 + j;
 	word z2 = y2 + h - j - 1;
 	byte *p_src = (byte *) map_y[z1] + x1;
 	byte *p_dst = (byte *) map_y[z2] + x2;
-	byte *c_src = (byte *) 0x5800 + ((z1 & ~7) << 2) + x1;
-	byte *c_dst = (byte *) 0x5800 + ((z2 & ~7) << 2) + x2;
-	for (byte i = 0; i < w >> 3; i++) {
+	byte *c_src = attribute_addr(x1, z1);
+	byte *c_dst = attribute_addr(x2, z2);
+	for (byte i = 0; i < w; i++) {
 	    p_dst[i] = p_src[i];
 	    c_dst[i] = c_src[i];
+	}
+    }
+}
+
+static byte flip_bits(byte source) {
+    byte result = 0;
+    for (byte i = 0; i < 8; i++) {
+	result = result << 1;
+	result |= source & 1;
+	source = source >> 1;
+    }
+    return result;
+}
+
+static void flip_H(byte x1, byte y1, byte x2, byte y2, byte w, byte h) {
+    for (byte j = 0; j < h; j++) {
+	word z1 = y1 + j;
+	word z2 = y2 + j;
+	byte *p_src = (byte *) map_y[z1] + x1;
+	byte *p_dst = (byte *) map_y[z2] + x2;
+	byte *c_src = attribute_addr(x1, z1);
+	byte *c_dst = attribute_addr(x2, z2);
+	for (byte i = 0; i < w; i++) {
+	    byte offset = w - i - 1;
+	    p_dst[i] = flip_bits(p_src[offset]);
+	    c_dst[i] = c_src[offset];
 	}
     }
 }
@@ -280,7 +308,9 @@ static void draw_hud(void) {
     }
 
     draw_image(circuit, 1, 1, 8, 8);
-    flip_V(8, 8, 8, 120, 64, 64);
+    flip_V(0x01, 0x08, 0x01, 0x78, 0x08, 0x40);
+    flip_H(0x01, 0x08, 0x0f, 0x08, 0x08, 0x40);
+    flip_V(0x0f, 0x08, 0x0f, 0x78, 0x08, 0x40);
     draw_image(star, 9, 9, 6, 6);
 }
 

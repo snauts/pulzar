@@ -218,7 +218,6 @@ static int serialize(int height) {
 	}
     }
     if (wait > 1) save_diff(diff, amount, &index, wait);
-    save_diff(diff, get_line(diff, height - 1), &index, 0);
     return index;
 }
 

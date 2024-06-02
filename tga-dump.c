@@ -308,7 +308,6 @@ static int curve(void) {
 	    float offset = 16.0 * sin(2 * M_PI * y / 64.0);
 	    unfold[x][y] = roundf(32.0 - offset) < x
 		&& x < roundf(96.0 + offset);
-	    fprintf(stderr, "%f\n", offset);
 	}
     }
     return 64;

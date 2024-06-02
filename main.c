@@ -666,6 +666,10 @@ static void emit_curve(void) {
     load_generated(2, curve);
 }
 
+static void emit_twinkle(void) {
+    load_generated(3, twinkle);
+}
+
 static const struct Level level_list[] = {
     { &emit_whirler, "WHIRLER" },
     { &emit_reverse, "REVERSE" },
@@ -673,6 +677,7 @@ static const struct Level level_list[] = {
     { &emit_curve,   "{CURVE}" },
     { &emit_diamond, "DIAMOND" },
     { &emit_rings,   "(RINGS)" },
+    { &emit_twinkle, "TWINKLE" },
     { &emit_gamma,   "/GAMMA/" },
     { &emit_slinger, "SLING->" },
 };

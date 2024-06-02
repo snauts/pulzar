@@ -321,12 +321,37 @@ static int curve(void) {
     return 128;
 }
 
+static int twinkle_lines(int center, int offset, int y) {
+    unfold[(center + offset) % 128][y] = 1;
+    unfold[(center + offset + 1) % 128][y] = 1;
+    unfold[(center - offset - 1) % 128][y] = 1;
+    unfold[(center - offset) % 128][y] = 1;
+}
+
+static int twinkle(void) {
+    int offset = 0;
+    for (unsigned y = 0; y < 96; y++) {
+	if (y < 32) {
+	    twinkle_lines(32, y, y + 1);
+	}
+	else if (y < 64) {
+	    twinkle_lines(32, 63 - y, y + 1);
+	    twinkle_lines(96, y - 32, y + 1);
+	}
+	else if (y < 96) {
+	    twinkle_lines(96, 95 - y, y + 1);
+	}
+    }
+    return 98;
+}
+
 static void save_game(void) {
     save_buffer("squiggly", &squiggly);
     save_buffer("diamonds", &diamonds);
     save_buffer("rings", &rings);
     save_buffer("gamma", &gamma_rain);
     save_buffer("curve", &curve);
+    save_buffer("twinkle", &twinkle);
 }
 
 int main(int argc, char **argv) {

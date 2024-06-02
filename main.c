@@ -285,6 +285,7 @@ static void flip_H(byte x1, byte y1, byte x2, byte y2, byte w, byte h) {
     }
 }
 
+static void draw_level_tab(void);
 static void draw_hud(void) {
     memset((byte *) 0x5800, 0x42, 0x300);
 
@@ -315,6 +316,7 @@ static void draw_hud(void) {
     flip_H(0x01, 0x08, 0x0f, 0x08, 0x08, 0x40);
     flip_V(0x0f, 0x08, 0x0f, 0x78, 0x08, 0x40);
     draw_image(star, 9, 9, 6, 6);
+    draw_level_tab();
 }
 
 static void take_life(void) {
@@ -661,18 +663,40 @@ static void emit_gamma(void) {
 }
 
 static const struct Level level_list[] = {
-    { &emit_whirler, "&WHIRLER" },
-    { &emit_reverse, "REVERSER" },
-    { &emit_squigle, "SQUIGGLY" },
-    { &emit_diamond, "DIAMONDS" },
-    { &emit_rings,   "(=RING=)" },
-    { &emit_gamma,   "GAMMARAY" },
-    { &emit_slinger, "-SLING->" },
+    { &emit_whirler, "WHIRLER" },
+    { &emit_reverse, "REVERSE" },
+    { &emit_squigle, "WAVEING" },
+    { &emit_diamond, "DIAMOND" },
+    { &emit_rings,   "(RINGS)" },
+    { &emit_gamma,   "/GAMMA/" },
+    { &emit_slinger, "SLING->" },
 };
+
+static byte text_pos(byte i) {
+    return ((24 - SIZE(level_list)) >> 1) + i;
+}
+
+static void draw_level_tab(void) {
+    byte y1 = text_pos(0) - 1;
+    byte y2 = text_pos(SIZE(level_list));
+    draw_tile(edge + 0x18, 0x1F, y1, 0x02);
+    draw_tile(edge + 0x08, 0x1F, y2, 0x02);
+
+    for (byte i = 24; i < 31; i++) {
+	draw_tile(edge + 0x48, i, y1, 0x02);
+	draw_tile(edge + 0x40, i, y2, 0x02);
+    }
+    for (byte i = y1 + 1; i < y2; i++) {
+	draw_tile(edge + 0x58, 0x1F, i, 0x02);
+    }
+
+    flip_V(1,  48, 24, (y1 << 3) - 24, 2, 24);
+    flip_V(1, 120, 24, (y2 << 3) + 8, 2, 24);
+}
 
 static void load_level(void) {
     if (level < SIZE(level_list)) {
-	put_str(level_list[level].msg, 24, level, 0x02);
+	put_str(level_list[level].msg, 24, text_pos(level), 0x02);
 	emit_field = level_list[level].fn;
     }
 }

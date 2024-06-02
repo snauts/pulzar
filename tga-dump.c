@@ -207,6 +207,15 @@ static int serialize(int height) {
     int wait = 1;
     int index = 0;
     unsigned char diff[128];
+//#define DEBUG
+#ifdef DEBUG
+    for (int y = 0; y < height; y++) {
+	for (int x = 0; x < 128; x++) {
+	    fprintf(stderr, "%d", unfold[x][y]);
+	}
+	fprintf(stderr, "\n");
+    }
+#endif
     save_diff(diff, get_line(diff, 0), &index, -1);
     for (int y = 1; y <= height; y++) {
 	amount = get_diff(diff, y, height);
@@ -275,10 +284,28 @@ static int rings(void) {
     return 64;
 }
 
+static void gamma_ray(int x, int y) {
+    for (unsigned i = 0; i < 8; i++) {
+	unfold[x][y + i] = 1;
+    }
+}
+
+static int gamma_rain(void) {
+    int offset = 0;
+    for (unsigned y = 0; y < 32; y += 16) {
+	for (unsigned x = 0; x < 128; x += 32) {
+	    gamma_ray((x + offset + 8) % 128, y + 1);
+	}
+	offset = 16 - offset;
+    }
+    return 32;
+}
+
 static void save_game(void) {
     save_buffer("squiggly", &squiggly);
     save_buffer("diamonds", &diamonds);
     save_buffer("rings", &rings);
+    save_buffer("gamma", &gamma_rain);
 }
 
 int main(int argc, char **argv) {

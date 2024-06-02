@@ -434,15 +434,25 @@ static void drain_wipe(void) {
     }
 }
 
-static void emit_whirlpool(word dir) {
-    word i = (dir & 0x7f) << 5;
-    if (counter > 16 && !empty_wipe()) {
+static void push_whirlpool(word i) {
+    for (word j = 0; j <= 0x800; j += 0x800) {
+	push_wipe((i + j) & 0xfff);
+    }
+}
+
+static void emit_whirlpool(word next, byte dir) {
+    word i = next << 5;
+    if (!empty_wipe()) {
 	pop_wipe();
 	pop_wipe();
     }
+    if (counter == 0) {
+	for (word n = 12 * 32; n > 0; n -= 32) {
+	    push_whirlpool(dir ? i - n : i + n);
+	}
+    }
     if (counter < 256) {
-	push_wipe(i);
-	push_wipe((i + 0x800) & 0xfff);
+	push_whirlpool(i);
     }
     else {
 	drain_wipe();
@@ -453,11 +463,11 @@ static void emit_whirlpool(word dir) {
 }
 
 static void emit_whirler(void) {
-    emit_whirlpool(counter);
+    emit_whirlpool(counter, 1);
 }
 
 static void emit_reverse(void) {
-    emit_whirlpool(-counter);
+    emit_whirlpool(-counter, 0);
 }
 
 #define C4	169	// 261.6Hz

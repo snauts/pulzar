@@ -206,6 +206,7 @@ static int serialize(int height) {
 	int amount = y == 0 ? get_line(diff, y) : get_diff(diff, y, height);
 	if (amount > 0) {
 	    save_diff(diff, amount, &index, wait);
+	    wait = 1;
 	}
 	else {
 	    wait++;

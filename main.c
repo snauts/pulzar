@@ -657,6 +657,7 @@ static void emit_rings(void) {
 }
 
 static const struct Level level_list[] = {
+    { &emit_diamond, "DIAMONDS" },
     { &emit_whirler, "&WHIRLER" },
     { &emit_reverse, "REVERSER" },
     { &emit_squigle, "SQUIGGLY" },

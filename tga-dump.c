@@ -249,7 +249,7 @@ static int squiggly(void) {
 
 static int diamonds(void) {
     float q = 1.0;
-    for (unsigned y = 1; y < 250; y += 5) {
+    for (unsigned y = 1; y < 250; y += 6) {
 	unsigned x = roundf(q);
 	for (unsigned i = 0; i < 3; i++) {
 	    unfold[x % 128][y + i] = 1;
@@ -257,7 +257,7 @@ static int diamonds(void) {
 	}
 	q = q + 128.0 * 1.618033;
     }
-    return 250;
+    return 255;
 }
 
 static int rings(void) {

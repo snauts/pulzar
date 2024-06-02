@@ -541,6 +541,9 @@ static void finish_game(void) {
 	    if (duration >= tune[1] >> 3) {
 		offset += period >> 4;
 	    }
+	    if (duration == L4 >> 1) {
+		flash_title();
+	    }
 	    if (duration >= tune[1]) {
 		tune += 2;
 		if (tune[1] == 0) {

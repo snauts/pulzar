@@ -428,21 +428,22 @@ static void push_whirlpool(word i) {
     }
 }
 
-static void emit_whirlpool(word next, byte dir) {
+static void emit_whirlpool(word next, int8 dir) {
+    const byte w = 12;
     word i = next << 5;
     if (counter == 0) {
-	for (byte n = 0; n < 12; n++) {
+	for (byte n = 0; n < w; n++) {
 	    push_whirlpool(i);
-	    i = i + (dir ? -32 : 32);
+	    i = i + dir;
 	}
     }
     else if (counter < 256) {
-	push_whirlpool(i + (dir ? -384 : 384));
+	push_whirlpool(i + w * dir);
 	push_whirlpool(i);
     }
     else {
-	for (byte n = 0; n < 12; n++) {
-	    i = i + (dir ? -32 : 32);
+	for (byte n = 0; n < w; n++) {
+	    i = i + dir;
 	    push_whirlpool(i);
 	}
 	emit_field = &emit_emptiness;
@@ -450,11 +451,11 @@ static void emit_whirlpool(word next, byte dir) {
 }
 
 static void emit_whirler(void) {
-    emit_whirlpool(counter, 1);
+    emit_whirlpool(counter, -32);
 }
 
 static void emit_reverse(void) {
-    emit_whirlpool(-counter, 0);
+    emit_whirlpool(-counter, 32);
 }
 
 #define C4	169	// 261.6Hz

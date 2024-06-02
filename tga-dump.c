@@ -218,7 +218,6 @@ static int serialize(int height) {
 	    wait++;
 	}
     }
-    if (wait > 1) save_diff(diff, amount, &index, wait);
     level[index++] = 0;
     return index;
 }
@@ -261,9 +260,25 @@ static int diamonds(void) {
     return 250;
 }
 
+static int rings(void) {
+    float q = 1.0;
+    for (unsigned x = 0; x < 32; x++) {
+	for (unsigned y = 30; y < 32; y++) {
+	    unfold[x +  0][y] = 1;
+	    unfold[x + 64][y] = 1;
+	}
+	for (unsigned y = 62; y < 64; y++) {
+	    unfold[x + 32][y] = 1;
+	    unfold[x + 96][y] = 1;
+	}
+    }
+    return 64;
+}
+
 static void save_game(void) {
     save_buffer("squiggly", &squiggly);
     save_buffer("diamonds", &diamonds);
+    save_buffer("rings", &rings);
 }
 
 int main(int argc, char **argv) {

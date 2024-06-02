@@ -237,6 +237,23 @@ static void life_sprite(byte offset, byte pos) {
     draw_tile(edge + offset, 0x16 - pos, 0x17, 0x02);
 }
 
+static void flip_V(byte x1, byte y1, byte x2, byte y2, byte w, byte h) {
+    x1 = x1 >> 3;
+    x2 = x2 >> 3;
+    for (byte j = 0; j < h; j++) {
+	word z1 = y1 + j;
+	word z2 = y2 + h - j - 1;
+	byte *p_src = (byte *) map_y[z1] + x1;
+	byte *p_dst = (byte *) map_y[z2] + x2;
+	byte *c_src = (byte *) 0x5800 + ((z1 & ~7) << 2) + x1;
+	byte *c_dst = (byte *) 0x5800 + ((z2 & ~7) << 2) + x2;
+	for (byte i = 0; i < w >> 3; i++) {
+	    p_dst[i] = p_src[i];
+	    c_dst[i] = c_src[i];
+	}
+    }
+}
+
 static void draw_hud(void) {
     memset((byte *) 0x5800, 0x42, 0x300);
 
@@ -263,6 +280,7 @@ static void draw_hud(void) {
     }
 
     draw_image(circuit, 1, 1, 8, 8);
+    flip_V(8, 8, 8, 120, 64, 64);
     draw_image(star, 9, 9, 6, 6);
 }
 

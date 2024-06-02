@@ -329,6 +329,15 @@ static int twinkle_lines(int center, int offset, int y) {
     }
 }
 
+static void snow_flake(int x, int y) {
+    for (int i = -4; i <= 4; i++) {
+	unfold[x][y + i] = 1;
+	unfold[x + i][y] = 1;
+	unfold[x + i][y + i] = 1;
+	unfold[x + i][y - i] = 1;
+    }
+}
+
 static int twinkle(void) {
     int offset = 0;
     const int size = 32;
@@ -344,6 +353,8 @@ static int twinkle(void) {
 	    twinkle_lines(3 * size, 3 * size - y - 1, y + 1);
 	}
     }
+    snow_flake(32 + 16, 80);
+    snow_flake(96 + 16, 16);
     return 3 * size + 2;
 }
 

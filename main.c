@@ -42,6 +42,12 @@ static byte w_head, w_tail;
 void reset(void);
 static void (*emit_field)(void);
 
+static byte wait;
+static byte repeat;
+static const byte *wrap;
+static const byte *start;
+static const byte *current;
+
 struct Level {
     void (*fn)(void);
     const char *msg;
@@ -614,6 +620,52 @@ static void emit_slinger(void) {
 	wait_vblank();
     }
     finish_game();
+}
+
+static void update_field(void) {
+    byte amount = *(current++);
+    for (byte i = 0; i < amount; i++) {
+	word emit = *(current++);
+	ray[r_head++] = emit << 5;
+    }
+}
+
+static void emit_cleanup(void) {
+    current = start;
+    update_field();
+    emit_field = &emit_emptiness;
+}
+
+static void emit_generated(void) {
+    wait--;
+    if (wait == 0) {
+	update_field();
+	wait = *(current++);
+	if (wait == 0) {
+	    if (repeat > 1) {
+		repeat--;
+		current = wrap;
+		wait = *(current++);
+	    }
+	    else {
+		emit_field = &emit_cleanup;
+	    }
+	}
+    }
+}
+
+static void load_generated(byte n, const byte *ptr) {
+    repeat = n;
+    start = ptr;
+    current = ptr;
+    update_field();
+    wrap = current;
+    wait = *(current++);
+    emit_field = &emit_generated;
+}
+
+static void emit_squigle(void) {
+    load_generated(8, squiggly);
 }
 
 static const struct Level level_list[] = {

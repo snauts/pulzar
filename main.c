@@ -440,32 +440,33 @@ static void drain_wipe(void) {
     }
 }
 
-static void push_whirlpool(word i) {
-    for (word j = 0; j <= 0x800; j += 0x800) {
-	push_wipe((i + j) & 0xfff);
-    }
-}
-
 static void emit_emptiness(void) {
     if (r_tail == r_head) done = 1;
 }
 
+static void push_whirlpool(word i) {
+    for (word j = 0; j <= 0x800; j += 0x800) {
+	ray[r_head++] = (i + j) & 0xfff;
+    }
+}
+
 static void emit_whirlpool(word next, byte dir) {
     word i = next << 5;
-    if (!empty_wipe()) {
-	pop_wipe();
-	pop_wipe();
-    }
     if (counter == 0) {
-	for (word n = 12 * 32; n > 0; n -= 32) {
-	    push_whirlpool(dir ? i - n : i + n);
+	for (byte n = 0; n < 12; n++) {
+	    push_whirlpool(i);
+	    i = i + (dir ? -32 : 32);
 	}
     }
-    if (counter < 256) {
+    else if (counter < 256) {
+	push_whirlpool(i + (dir ? -384 : 384));
 	push_whirlpool(i);
     }
     else {
-	drain_wipe();
+	for (byte n = 0; n < 12; n++) {
+	    i = i + (dir ? -32 : 32);
+	    push_whirlpool(i);
+	}
 	emit_field = &emit_emptiness;
     }
 }

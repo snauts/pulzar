@@ -648,10 +648,15 @@ static void emit_squigle(void) {
     load_generated(8, squiggly);
 }
 
+static void emit_diamond(void) {
+    load_generated(1, diamonds);
+}
+
 static const struct Level level_list[] = {
     { &emit_whirler, "&WHIRLER" },
     { &emit_reverse, "REVERSER" },
     { &emit_squigle, "SQUIGGLY" },
+    { &emit_diamond, "DIAMONDS" },
     { &emit_slinger, "-SLING->" },
 };
 

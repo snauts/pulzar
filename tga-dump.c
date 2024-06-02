@@ -248,8 +248,22 @@ static int squiggly(void) {
     return 32;
 }
 
+static int diamonds(void) {
+    float q = 1.0;
+    for (unsigned y = 1; y < 250; y += 5) {
+	unsigned x = roundf(q);
+	for (unsigned i = 0; i < 3; i++) {
+	    unfold[x % 128][y + i] = 1;
+	    unfold[(x - 1 + i) % 128][y + 1] = 1;
+	}
+	q = q + 128.0 * 1.618033;
+    }
+    return 250;
+}
+
 static void save_game(void) {
     save_buffer("squiggly", &squiggly);
+    save_buffer("diamonds", &diamonds);
 }
 
 int main(int argc, char **argv) {

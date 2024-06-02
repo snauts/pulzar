@@ -380,7 +380,7 @@ static void drain_wipe(void) {
 
 static void emit_whirlpool(word dir) {
     word i = (dir & 0x7f) << 5;
-    if (counter > 8 && !empty_wipe()) {
+    if (counter > 16 && !empty_wipe()) {
 	pop_wipe();
 	pop_wipe();
     }

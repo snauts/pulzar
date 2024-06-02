@@ -10,6 +10,7 @@ all:
 	./tga-dump -b star.tga 10 14 15 >> data.h
 	./tga-dump -b circuit.tga 2 10 >> data.h
 	./tga-dump -l >> data.h
+	./tga-dump -g >> data.h
 	@sdcc $(CFLAGS) main.c -o pulzar.ihx
 	hex2bin pulzar.ihx > /dev/null
 	@make tap

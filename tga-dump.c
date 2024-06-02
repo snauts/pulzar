@@ -110,6 +110,7 @@ static void dump_buffer(void *ptr, int size, int step) {
 	if ((i & 7) == 7) printf("\n");
 	ptr += step;
     }
+    if ((size & 7) != 0) printf("\n");
 }
 
 static void save_bitmap(struct Header *header, unsigned char *buf, int size) {
@@ -170,17 +171,54 @@ static void save_lines(void) {
     printf("};\n");
 }
 
+unsigned char unfold[128][512];
+unsigned char level[sizeof(unfold)];
+
+static int serialize(void) {
+    return 1;
+}
+
+static void save_buffer(char *name, int (*fill)(void)) {
+    memset(unfold, 0, sizeof(unfold));
+    int height = fill();
+    int size = serialize();
+    fprintf(stderr, "LEVEL:%s SIZE:%d\n", name, size);
+    printf("const byte %s[] = {\n", name);
+    dump_buffer(level, size, 1);
+    printf("};\n");
+}
+
+static int squiggly(void) {
+    for (int y = 0; y < 32; y++) {
+	for (int x = 0; x < 128; x++) {
+	    int offset = roundf(4.0 * sin(2 * M_PI * y / 32.0));
+	    int from = 4 + offset;
+	    int to = 8 + offset;
+	    unfold[x][y] = from < x && x < to;
+	}
+    }
+    return 32;
+}
+
+static void save_game(void) {
+    save_buffer("squiggly", &squiggly);
+}
+
 int main(int argc, char **argv) {
     if (argc < 2) {
 	printf("USAGE: tga-dump [option] file.tga\n");
 	printf("  -b   save bitmap zx\n");
 	printf("  -l   save line data\n");
+	printf("  -g   save game data\n");
 	return 0;
     }
 
     switch (argv[1][1]) {
     case 'l':
 	save_lines();
+	return 0;
+    case 'g':
+	save_game();
 	return 0;
     }
 

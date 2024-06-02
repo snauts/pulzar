@@ -440,6 +440,10 @@ static void push_whirlpool(word i) {
     }
 }
 
+static void emit_emptiness(void) {
+    if (r_tail == r_head) done = 1;
+}
+
 static void emit_whirlpool(word next, byte dir) {
     word i = next << 5;
     if (!empty_wipe()) {
@@ -456,9 +460,7 @@ static void emit_whirlpool(word next, byte dir) {
     }
     else {
 	drain_wipe();
-    }
-    if (counter == 288) {
-	done = 1;
+	emit_field = &emit_emptiness;
     }
 }
 

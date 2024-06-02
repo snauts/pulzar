@@ -331,19 +331,20 @@ static int twinkle_lines(int center, int offset, int y) {
 
 static int twinkle(void) {
     int offset = 0;
-    for (unsigned y = 0; y < 96; y++) {
-	if (y < 32) {
-	    twinkle_lines(32, y, y + 1);
+    const int size = 32;
+    for (unsigned y = 0; y < 3 * size; y++) {
+	if (y < size) {
+	    twinkle_lines(size, y, y + 1);
 	}
-	else if (y < 64) {
-	    twinkle_lines(32, 63 - y, y + 1);
-	    twinkle_lines(96, y - 32, y + 1);
+	else if (y < 2 * size) {
+	    twinkle_lines(size, 2 * size - y - 1, y + 1);
+	    twinkle_lines(3 * size, y - size, y + 1);
 	}
-	else if (y < 96) {
-	    twinkle_lines(96, 95 - y, y + 1);
+	else if (y < 3 * size) {
+	    twinkle_lines(3 * size, 3 * size - y - 1, y + 1);
 	}
     }
-    return 98;
+    return 3 * size + 2;
 }
 
 static void save_game(void) {

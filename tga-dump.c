@@ -322,10 +322,11 @@ static int curve(void) {
 }
 
 static int twinkle_lines(int center, int offset, int y) {
-    unfold[(center + offset) % 128][y] = 1;
-    unfold[(center + offset + 1) % 128][y] = 1;
-    unfold[(center - offset - 1) % 128][y] = 1;
-    unfold[(center - offset) % 128][y] = 1;
+    const int thick = 2;
+    for (int i = 0; i < thick; i++) {
+	unfold[(center + offset + i) % 128][y] = 1;
+	unfold[(center - offset - i) % 128][y] = 1;
+    }
 }
 
 static int twinkle(void) {

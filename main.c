@@ -114,7 +114,7 @@ static void memset(byte *ptr, byte data, word len) {
 }
 
 static void setup_system(void) {
-    byte top = (IRQ_BASE >> 8) - 1;
+    byte top = (byte) ((IRQ_BASE >> 8) - 1);
     word jmp_addr = (top << 8) | top;
     BYTE(jmp_addr + 0) = 0xc3;
     WORD(jmp_addr + 1) = ADDR(&interrupt);
@@ -342,7 +342,7 @@ static inline byte empty_wipe (void) {
     return w_head == w_tail;
 }
 
-static inline byte is_level_clear() {
+static inline byte is_level_clear(void) {
     return !die && r_tail == r_head && empty_wipe();
 }
 

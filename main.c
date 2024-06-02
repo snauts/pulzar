@@ -546,6 +546,25 @@ static byte launch_position(void) {
     return (pos & 0x01f) < 8 && (pos & 0xfff) < 256;
 }
 
+static void hyperspace_streaks(word *lines, byte clear) {
+    word pitch = clear ? 160 : 320;
+    for (word j = 0; j < 10; j++) {
+	while (!vblank) {
+	    word delay = pitch - (j << 4);
+	    out_fe(0x10);
+	    vblank_delay(delay);
+	    out_fe(0x0);
+	    vblank_delay(delay);
+	}
+	vblank = 0;
+	for (byte i = 0; i < 3; i++) {
+	    word addr = lines[i];
+	    if (dir) addr += j; else addr -= j;
+	    BYTE(addr) = clear ? 0 : (i == 1 ? 0xff : 0x7e);
+	}
+    }
+}
+
 static void emit_slinger(void) {
     byte faster = 0;
     byte close = 0;
@@ -559,6 +578,16 @@ static void emit_slinger(void) {
 	draw_whole_ship(0);
 	faster += 4;
 	close += 16;
+    }
+    word lines[3];
+    word x = ((pos - 1) & 0xfff);
+    for (byte i = 0; i < SIZE(lines); i++) {
+	lines[i] = line_addr[x + i];
+    }
+    hyperspace_streaks(lines, 0);
+    hyperspace_streaks(lines, 1);
+    for (byte i = 0; i < 50; i++) {
+	wait_vblank();
     }
     finish_game();
 }

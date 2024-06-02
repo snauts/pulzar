@@ -232,13 +232,17 @@ static void save_buffer(char *name, int (*fill)(void)) {
     printf("};\n");
 }
 
+static unsigned char squiggly_interval(int x, int n) {
+    return  (4 + n < x && x <  8 + n)
+	|| (46 + n < x && x < 50 + n)
+	|| (88 + n < x && x < 92 + n);
+}
+
 static int squiggly(void) {
     for (int y = 0; y < 32; y++) {
 	for (int x = 0; x < 128; x++) {
 	    int offset = roundf(4.0 * sin(2 * M_PI * y / 32.0));
-	    int from = 4 + offset;
-	    int to = 8 + offset;
-	    unfold[x][y] = from < x && x < to;
+	    unfold[x][y] = squiggly_interval(x, offset);
 	}
     }
     return 32;

@@ -671,6 +671,7 @@ static void emit_squigle(void) {
 static const struct Level level_list[] = {
     { &emit_whirler, "&WHIRLER" },
     { &emit_reverse, "REVERSER" },
+    { &emit_squigle, "SQUIGGLY" },
     { &emit_slinger, "SLINGER>" },
 };
 

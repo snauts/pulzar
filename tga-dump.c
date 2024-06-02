@@ -28,6 +28,7 @@ static void hexdump(unsigned char *buf, int size) {
 	    fprintf(stderr, "\n");
 	}
     }
+    if ((size & 0xf) != 0x0) fprintf(stderr, "\n");
 }
 
 static void remove_extension(char *src, char *dst) {
@@ -174,7 +175,7 @@ static void save_lines(void) {
 unsigned char unfold[128][512];
 unsigned char level[sizeof(unfold)];
 
-static int get_diff(unsigned char *diff, int y, int height) {
+static int get_diff(unsigned char *diff, unsigned y, int height) {
     int n = 0;
     y = y % height;
     for (int x = 0; x < 128; x++) {
@@ -218,6 +219,7 @@ static int serialize(int height) {
 	}
     }
     if (wait > 1) save_diff(diff, amount, &index, wait);
+    level[index++] = 0;
     return index;
 }
 

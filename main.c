@@ -179,7 +179,10 @@ static void draw_image(const byte *img, byte x, byte y, byte w, byte h) {
 
     for (byte dy = y; dy < y + h; dy += 8) {
 	for (byte dx = x; dx < x + w; dx++) {
-	    BYTE(0x5800 + (dy << 2) + dx) = img[i++];
+	    byte attribute = img[i++];
+	    if (attribute != 0) {
+		BYTE(0x5800 + (dy << 2) + dx) = attribute;
+	    }
 	}
     }
 }
@@ -259,6 +262,7 @@ static void draw_hud(void) {
 	life_sprite(0x60, i);
     }
 
+    draw_image(circuit, 1, 1, 8, 8);
     draw_image(star, 9, 9, 6, 6);
 }
 

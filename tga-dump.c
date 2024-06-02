@@ -78,7 +78,7 @@ static unsigned short on_pixel(unsigned char *buf, int i, int w) {
 	i += w;
     }
     add_color(pixel);
-    return pixel;
+    return pixel == 0 ? 0x1 : pixel;
 }
 
 static int ink_index(struct Header *header, int i) {

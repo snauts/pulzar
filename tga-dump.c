@@ -306,8 +306,8 @@ static int curve(void) {
     for (unsigned y = 0; y < 128; y++) {
 	for (unsigned x = 0; x < 128; x++) {
 	    float offset = 16.0 * sin(2 * M_PI * y / 64.0);
-	    unfold[x][y] = roundf(32.0 - offset) < x
-		&& x < roundf(96.0 + offset);
+	    unfold[x][y] = roundf(40.0 - offset) < x
+		&& x < roundf(88.0 + offset);
 	}
 	unsigned char buf[128];
 	for (unsigned x = 0; x < 128; x++) {

@@ -34,7 +34,7 @@ static byte clr;
 static byte die;
 
 static word ray[256];
-static byte r_head, r_tail;
+static byte head, tail;
 
 void reset(void);
 static void (*emit_field)(void);
@@ -390,11 +390,11 @@ static void draw_player(void) {
 }
 
 static void draw_field(void) {
-    byte i = r_tail;
-    while (i != r_head) {
+    byte i = tail;
+    while (i != head) {
 	word r = ray[i++]++;
 	*LINE(r) ^= line_data[r];
-	if ((r & 0x1f) == 0x1f) r_tail++;
+	if ((r & 0x1f) == 0x1f) tail++;
     }
 }
 
@@ -419,12 +419,12 @@ static void next_field(void) {
 }
 
 static void emit_emptiness(void) {
-    if (r_tail == r_head) done = 1;
+    if (tail == head) done = 1;
 }
 
 static void push_whirlpool(word i) {
     for (word j = 0; j <= 0x800; j += 0x800) {
-	ray[r_head++] = (i + j) & 0xfff;
+	ray[head++] = (i + j) & 0xfff;
     }
 }
 
@@ -605,7 +605,7 @@ static void update_field(void) {
     byte amount = *(current++);
     for (byte i = 0; i < amount; i++) {
 	word emit = *(current++);
-	ray[r_head++] = emit << 5;
+	ray[head++] = emit << 5;
     }
 }
 
@@ -670,7 +670,7 @@ static void clear_field(void) {
 }
 
 static void init_variables(void) {
-    r_head = r_tail = 0;
+    head = tail = 0;
     counter = 0;
     flash = 0;
     done = 0;

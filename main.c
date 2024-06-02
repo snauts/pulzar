@@ -661,7 +661,7 @@ static const struct Level level_list[] = {
     { &emit_reverse, "REVERSER" },
     { &emit_squigle, "SQUIGGLY" },
     { &emit_diamond, "DIAMONDS" },
-    { &emit_rings,   "( RING )" },
+    { &emit_rings,   "(=RING=)" },
     { &emit_slinger, "-SLING->" },
 };
 

@@ -334,14 +334,14 @@ static void draw_whole_ship(byte clear_ship) {
     draw_ship_part(pos + (dir ? 32 : -32));
 }
 
-static void move_ship(void) {
-    if (dir) pos += 32; else pos -= 32;
+static void move_ship(byte speed) {
+    if (dir) pos += speed; else pos -= speed;
 }
 
 static void control_ship(void) {
     byte now = SPACE_DOWN();
     if (now > key) dir = 1 - dir;
-    move_ship();
+    move_ship(32);
     key = now;
 }
 
@@ -375,7 +375,7 @@ static void draw_player(void) {
     else {
 	if (counter & 1) {
 	    draw_debris(die >> 1);
-	    move_ship();
+	    move_ship(32);
 	}
 	die++;
     }
@@ -542,18 +542,37 @@ static void finish_game(void) {
     reset();
 }
 
+static byte launch_position(void) {
+    return (pos & 0x01f) < 8 && (pos & 0xfff) < 256;
+}
+
+static void emit_slinger(void) {
+    byte faster = 0;
+    byte close = 0;
+    byte speed = 32;
+    while (!launch_position()) {
+	wait_vblank();
+	draw_whole_ship(1);
+	move_ship(speed);
+	if (!faster) speed += 32;
+	if (!close) pos--;
+	draw_whole_ship(0);
+	faster += 4;
+	close += 16;
+    }
+    finish_game();
+}
+
 static const struct Level level_list[] = {
     { &emit_whirler, "&WHIRLER" },
     { &emit_reverse, "REVERSER" },
+    { &emit_slinger, "SLINGER>" },
 };
 
 static void load_level(void) {
     if (level < SIZE(level_list)) {
 	put_str(level_list[level].msg, 24, level, 0x02);
 	emit_field = level_list[level].fn;
-    }
-    else {
-	finish_game();
     }
 }
 

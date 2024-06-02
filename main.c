@@ -674,7 +674,7 @@ static const struct Level level_list[] = {
     { &emit_whirler, "WHIRLER" },
     { &emit_reverse, "REVERSE" },
     { &emit_squigle, "WAVEING" },
-    { &emit_curve,   "{CURVE}" },
+    { &emit_curve,   "&CURVES" },
     { &emit_diamond, "DIAMOND" },
     { &emit_rings,   "(RINGS)" },
     { &emit_twinkle, "TWINKLE" },

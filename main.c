@@ -36,9 +36,6 @@ static byte die;
 static word ray[256];
 static byte r_head, r_tail;
 
-static word wipe[256];
-static byte w_head, w_tail;
-
 void reset(void);
 static void (*emit_field)(void);
 
@@ -401,10 +398,6 @@ static void draw_field(void) {
     }
 }
 
-static inline byte empty_wipe (void) {
-    return w_head == w_tail;
-}
-
 static void load_level(void);
 static void advance_level(void) {
     level++;
@@ -422,21 +415,6 @@ static void next_field(void) {
     }
     else if (!die && done) {
 	flash = 32;
-    }
-}
-
-static void push_wipe(word i) {
-    ray[r_head++] = i;
-    wipe[w_head++] = i;
-}
-
-static void pop_wipe(void) {
-    ray[r_head++] = wipe[w_tail++];
-}
-
-static void drain_wipe(void) {
-    while (!empty_wipe()) {
-	pop_wipe();
     }
 }
 
@@ -693,7 +671,6 @@ static void clear_field(void) {
 
 static void init_variables(void) {
     r_head = r_tail = 0;
-    w_head = w_tail = 0;
     counter = 0;
     flash = 0;
     done = 0;

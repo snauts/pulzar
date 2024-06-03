@@ -382,6 +382,7 @@ static const char * const lose[] = {
 };
 
 static void game_over(void) {
+    palette(1);
     put_str("GAME OVER", 11, 10, 0x42);
     for (byte i = 0; i < SIZE(lose); i++) {
 	put_str(lose[i], 0, 12 + i, 0x42);

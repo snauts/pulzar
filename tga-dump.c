@@ -378,6 +378,87 @@ static int twinkle(void) {
     return 3 * size + 2;
 }
 
+static int four[64] = {
+    0,0,0,1,1,1,0,0,
+    0,0,1,1,1,1,0,0,
+    0,1,1,0,1,1,0,0,
+    1,1,0,0,1,1,0,0,
+    1,1,1,1,1,1,1,0,
+    0,0,0,0,1,1,0,0,
+    0,0,0,0,1,1,0,0,
+    0,0,0,0,0,0,0,0,
+};
+
+static int two[64] = {
+    0,1,1,1,1,1,0,0,
+    1,1,0,0,0,1,1,0,
+    0,0,0,0,1,1,1,0,
+    0,0,0,1,1,1,0,0,
+    0,0,1,1,1,0,0,0,
+    0,1,1,1,0,0,0,0,
+    1,1,1,1,1,1,1,0,
+    0,0,0,0,0,0,0,0,
+};
+
+static float interpolate(float a, float b, float q) {
+    return a * q + b * (1.0 - q);
+}
+
+static void rotate_ccw(int *ptr, int w, int h) {
+    int tmp[w * h];
+    for (int y = 0; y < h; y++) {
+	for (int x = 0; x < w; x++) {
+	    tmp[x * h + y] = ptr[y * w + (w - x - 1)];
+	}
+    }
+    memcpy(ptr, tmp, sizeof(tmp));
+}
+
+static void flip_horizontal(int *ptr, int w, int h) {
+    for (int y = 0; y < h; y++) {
+	for (int x = 0; x < w / 2; x++) {
+	    int left = y * w + x;
+	    int right = y * w + (w - x - 1);
+	    int tmp = ptr[left];
+	    ptr[left] = ptr[right];
+	    ptr[right] = tmp;
+	}
+    }
+}
+
+static void scale(int *buf, int x, int y, int w, int h, int scale) {
+    for (int dy = 0; dy < h - 1; dy++) {
+	for (int dx = 0; dx < w - 1; dx++) {
+	    int p1 = buf[(dy + 0) * w + (dx + 0)];
+	    int p2 = buf[(dy + 0) * w + (dx + 1)];
+	    int p3 = buf[(dy + 1) * w + (dx + 0)];
+	    int p4 = buf[(dy + 1) * w + (dx + 1)];
+	    for (int sy = 0; sy < scale; sy++) {
+		for (int sx = 0; sx < scale; sx++) {
+		    int fx = x + dx * scale + sx;
+		    int fy = y + dy * scale + sy;
+		    float qx = (float) sx / (float) (scale - 1);
+		    float qy = (float) sy / (float) (scale - 1);
+		    float a = interpolate(p1, p2, 1.0 - qx);
+		    float b = interpolate(p3, p4, 1.0 - qx);
+		    unfold[fx][fy] = interpolate(a, b, (1.0 - qy)) > 0.5;
+		}
+	    }
+	}
+    }
+}
+
+static int number(void) {
+    flip_horizontal(four, 8, 8);
+    rotate_ccw(four, 8, 8);
+    scale(four, 80, 1, 8, 8, 4);
+
+    rotate_ccw(two, 8, 8);
+    flip_horizontal(two, 8, 8);
+    scale(two,  16, 1, 8, 8, 4);
+    return 40;
+}
+
 static void save_game(void) {
     save_buffer("squiggly", &squiggly);
     save_buffer("diamonds", &diamonds);
@@ -385,6 +466,7 @@ static void save_game(void) {
     save_buffer("gamma", &gamma_rain);
     save_buffer("curve", &curve);
     save_buffer("twinkle", &twinkle);
+    save_buffer("number", &number);
 }
 
 int main(int argc, char **argv) {

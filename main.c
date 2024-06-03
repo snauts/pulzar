@@ -157,7 +157,14 @@ static void palette(byte num) {
     num;
 #endif
 #if CPC
-    init_gate_array(num == 1 ? pal1 : pal2, 9);
+    switch (num) {
+    case 1:
+	init_gate_array(pal1, SIZE(pal1));
+	break;
+    case 2:
+	init_gate_array(pal2, SIZE(pal2));
+	break;
+    }
 #endif
 }
 

@@ -330,14 +330,31 @@ static int twinkle_lines(int center, int offset, int y) {
     }
 }
 
-static void snow_flake(int x, int y) {
-    for (int i = -6; i <= 6; i++) {
-	unfold[x + 0][y + i] = 1;
-	unfold[x + i][y + 0] = 1;
+static void line(int x1, int y1, int x2, int y2) {
+    float dx = (x2 - x1);
+    float dy = (y2 - y1);
+    float len = sqrtf(dx * dx + dy * dy);
+    if (len > 0.0) {
+	dx = dx / len;
+	dy = dy / len;
+	for (float i = 0; i <= len; i += 0.5) {
+	    int px = roundf(x1 + dx * i);
+	    int py = roundf(y1 + dy * i);
+	    unfold[px][py] = 1;
+	}
     }
-    for (int i = -4; i <= 4; i++) {
-	unfold[x + i][y + i] = 1;
-	unfold[x + i][y - i] = 1;
+}
+
+static void little_star(int x, int y) {
+    for (int i = 0; i < 5; i++) {
+	float angle = 2 * M_PI * i / 5.0  + M_PI / 2;
+	float dx = roundf(6 * sin(angle));
+	float dy = roundf(6 * cos(angle));
+	for (int a = -1; a <= 1; a++) {
+	    for (int b = -1; b <= 1; b++) {
+		line(x + a, y + b, x + dx, y + dy);
+	    }
+	}
     }
 }
 
@@ -356,8 +373,8 @@ static int twinkle(void) {
 	    twinkle_lines(128 - size, 3 * size - y - 1, y + 1);
 	}
     }
-    snow_flake(32 + 16, 80);
-    snow_flake(96 + 16, 16);
+    little_star(32 + 16, 80);
+    little_star(96 + 16, 16);
     return 3 * size + 2;
 }
 

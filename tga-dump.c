@@ -6,6 +6,8 @@
 #include <fcntl.h>
 #include <math.h>
 
+// #define DEBUG
+
 static char *file_name;
 static int color_index = 1;
 static unsigned char inkmap[256];
@@ -21,6 +23,7 @@ struct Header {
     unsigned char desc;
 };
 
+#ifdef DEBUG
 static void hexdump(unsigned char *buf, int size) {
     for (int i = 0; i < size; i++) {
 	fprintf(stderr, "%02x ", buf[i]);
@@ -30,6 +33,7 @@ static void hexdump(unsigned char *buf, int size) {
     }
     if ((size & 0xf) != 0x0) fprintf(stderr, "\n");
 }
+#endif
 
 static void remove_extension(char *src, char *dst) {
     for (int i = 0; i < strlen(src); i++) {
@@ -208,7 +212,6 @@ static int serialize(int height) {
     int wait = 1;
     int index = 0;
     unsigned char diff[128];
-//#define DEBUG
 #ifdef DEBUG
     for (int y = 0; y < height; y++) {
 	for (int x = 0; x < 128; x++) {

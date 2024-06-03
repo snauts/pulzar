@@ -357,7 +357,7 @@ static void draw_image(const byte *img, byte x, byte y, byte w, byte h) {
     word i = 0;
     y = y << 3;
     h = h << 3;
-#if CPC
+#ifdef CPC
     w = w << 1;
     x = x << 1;
 #endif
@@ -367,7 +367,7 @@ static void draw_image(const byte *img, byte x, byte y, byte w, byte h) {
 	    *addr++ = img[i++];
 	}
     }
-#if ZXS
+#ifdef ZXS
     for (byte dy = y; dy < y + h; dy += 8) {
 	for (byte dx = x; dx < x + w; dx++) {
 	    byte attribute = img[i++];
@@ -382,17 +382,17 @@ static void draw_image(const byte *img, byte x, byte y, byte w, byte h) {
 static void draw_tile(const byte *img, byte x, byte y, byte color) {
     word i = 0;
     y = y << 3;
-#if CPC
+#ifdef CPC
     x = x << 1;
     color;
 #endif
     for (byte dy = y; dy < y + 8; dy++) {
 	BYTE(map_y[dy] + x + 0) = img[i++];
-#if CPC
+#ifdef CPC
 	BYTE(map_y[dy] + x + 1) = img[i++];
 #endif
     }
-#if ZXS
+#ifdef ZXS
     BYTE(0x5800 + (y << 2) + x) = color;
 #endif
 }
@@ -694,12 +694,23 @@ static void emit_reverse(void) {
     emit_whirlpool(-counter, 32);
 }
 
+#ifdef ZXS
 #define C4	169	// 261.6Hz
 #define D4	146	// 293.7Hz
 #define E4	129	// 329.6Hz
 #define F4	124	// 349.2Hz
 #define G4	109	// 392.0Hz
 #define A4	96	// 440.0Hz
+#endif
+#ifdef CPC
+#define C4	239
+#define D4	213
+#define E4	190
+#define F4	179
+#define G4	159
+#define A4	142
+#endif
+
 
 #define L2  40
 #define L4  20
@@ -756,12 +767,14 @@ static void finish_game(void) {
     }
 
     while (!SPACE_DOWN()) {
+#ifdef ZXS
 	if (period > offset) {
 	    out_fe(0x10);
 	    delay(period - offset);
 	    out_fe(0x00);
 	    delay(period + offset);
 	}
+#endif
 	if (is_vblank_start()) {
 	    duration++;
 	    if (duration >= tune[1] >> 3) {

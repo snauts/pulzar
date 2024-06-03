@@ -10,16 +10,16 @@ typedef unsigned short word;
 #define SIZE(array)	(sizeof(array) / sizeof(*(array)))
 
 #ifdef ZXS
+#define SPACE_DOWN()	!(in_fe(0x7f) & 0x01)
 #define SETUP_STACK()	__asm__("ld sp, #0xFDFC")
 #define IRQ_BASE	0xfe00
 #endif
 
 #ifdef CPC
+#define SPACE_DOWN()	!(cpc_keys() & 0x80)
 #define SETUP_STACK()	__asm__("ld sp, #0x95FC")
 #define IRQ_BASE	0x9600
 #endif
-
-#define SPACE_DOWN()	!(in_fe(0x7f) & 0x01)
 
 #define LINE(x)		(byte *) (line_addr[x])
 
@@ -111,6 +111,28 @@ static byte cpc_psg(byte reg, byte val) __naked {
     __asm__("out (c), c");
     __asm__("ld b, #0xf4");
     __asm__("ld c, l"); val;
+    __asm__("out (c), c");
+    __asm__("ld bc, #0xf600");
+    __asm__("out (c), c");
+    __asm__("ret");
+}
+
+static byte cpc_keys(void) __naked {
+    __asm__("ld bc, #0xf782");
+    __asm__("out (c), c");
+    __asm__("ld bc, #0xf40e");
+    __asm__("out (c), c");
+    __asm__("ld bc, #0xf6c0");
+    __asm__("out (c), c");
+    __asm__("ld bc, #0xf600");
+    __asm__("out (c), c");
+    __asm__("ld bc, #0xf792");
+    __asm__("out (c), c");
+    __asm__("ld bc, #0xf645");
+    __asm__("out (c), c");
+    __asm__("ld b, #0xf4");
+    __asm__("in a, (c)");
+    __asm__("ld bc, #0xf782");
     __asm__("out (c), c");
     __asm__("ld bc, #0xf600");
     __asm__("out (c), c");

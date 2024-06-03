@@ -510,6 +510,10 @@ static void draw_ship_part(word i) {
     byte prev = *LINE(i);
     byte data = line_data[i];
     data |= dir ? (data << 1) : (data >> 1);
+#ifdef CPC
+    data = data & 0xf;
+    data = data | (data << 4);
+#endif
     if (check_collision(prev, data)) die = 1;
     *LINE(i) = prev ^ data;
 }

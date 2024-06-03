@@ -291,8 +291,8 @@ static int rings(void) {
     return 64;
 }
 
-static void gamma_ray(int x, int y) {
-    for (unsigned i = 0; i < 8; i++) {
+static void gamma_ray(int x, int y, int size) {
+    for (unsigned i = 0; i < size; i++) {
 	unfold[x][y + i] = 1;
     }
 }
@@ -301,7 +301,7 @@ static int gamma_rain(void) {
     int offset = 0;
     for (unsigned y = 0; y < 32; y += 16) {
 	for (unsigned x = 0; x < 128; x += 32) {
-	    gamma_ray((x + offset + 8) % 128, y + 1);
+	    gamma_ray((x + offset + 8) % 128, y + 1, 8);
 	}
 	offset = 16 - offset;
     }
@@ -506,6 +506,20 @@ static int solaris(void) {
     return 128;
 }
 
+int radiate(void) {
+    int x = 0, dir = 1;
+    for (unsigned y = 0; y < 256; y += 4) {
+	x += 4 * dir;
+	if (x <= 0) dir = 1;
+	if (x >= 128) dir = -1;
+	for (int offset = 0; offset <= 64; offset += 64) {
+	    int n = x + offset + (rand() % 5) - 2;
+	    gamma_ray(n % 128, y + rand() % 16, 4 + rand() % 12);
+	}
+    }
+    return 256;
+}
+
 static void save_game(void) {
     save_buffer("squiggly", &squiggly);
     save_buffer("diamonds", &diamonds);
@@ -516,6 +530,7 @@ static void save_game(void) {
     save_buffer("number", &number);
     save_buffer("bubbles", &bubbles);
     save_buffer("solaris", &solaris);
+    save_buffer("radiate", &radiate);
 }
 
 int main(int argc, char **argv) {

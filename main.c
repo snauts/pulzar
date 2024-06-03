@@ -683,11 +683,16 @@ static void emit_solaris(void) {
     load_generated(2, solaris);
 }
 
+static void emit_radiate(void) {
+    load_generated(2, radiate);
+}
+
 static const struct Level level_list[] = {
     { &emit_whirler, "WHIRLER" },
     { &emit_reverse, "REVERSE" },
     { &emit_solaris, "*SOLAR*" },
     { &emit_squigle, "WAVEING" },
+    { &emit_radiate, "RADIATE" },
     { &emit_curve,   "&CURVES" },
     { &emit_diamond, "DIAMOND" },
     { &emit_number,  "NUMBER?" },

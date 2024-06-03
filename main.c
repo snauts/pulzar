@@ -686,10 +686,10 @@ static void emit_solaris(void) {
 static const struct Level level_list[] = {
     { &emit_whirler, "WHIRLER" },
     { &emit_reverse, "REVERSE" },
+    { &emit_solaris, "*SOLAR*" },
     { &emit_squigle, "WAVEING" },
     { &emit_curve,   "&CURVES" },
     { &emit_diamond, "DIAMOND" },
-    { &emit_solaris, "*SOLAR*" },
     { &emit_number,  "NUMBER?" },
     { &emit_rings,   "(RINGS)" },
     { &emit_bubbles, "BUBBLES" },

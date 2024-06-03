@@ -138,7 +138,28 @@ static byte cpc_keys(void) __naked {
     __asm__("out (c), c");
     __asm__("ret");
 }
+
+static const byte pal1[] = {
+    0x9D, 0x10, 0x54, 0, 0x54, 1, 0x4D, 2, 0x4C, 3, 0x4A
+};
+
+static const byte pal2[] = {
+    0x9D, 0x10, 0x54, 0, 0x54, 1, 0x4A, 2, 0x4C, 3, 0x4B
+};
+
+static void init_gate_array(const byte *ptr, byte size) {
+    for (byte i = 0; i < size; i++) gate_array(ptr[i]);
+}
 #endif
+
+static void palette(byte num) {
+#if ZXS
+    num;
+#endif
+#if CPC
+    init_gate_array(num == 1 ? pal1 : pal2, 9);
+#endif
+}
 
 static void vblank_delay(word ticks) {
     for (word i = 0; i < ticks; i++) { if (vblank) break; }
@@ -198,14 +219,6 @@ static void setup_system(void) {
 
     cpc_psg(7, 0xB8);
     cpc_psg(8, 0x00);
-
-    static const byte gate_array_init[] = {
-	0x9D, 0x10, 0x54, 0, 0x54, 1, 0x4D, 2, 0x4C, 3, 0x4A
-    };
-
-    for (byte i = 0; i < SIZE(gate_array_init); i++) {
-	gate_array(gate_array_init[i]);
-    }
 #endif
 }
 
@@ -334,6 +347,7 @@ static void wait_space(void) {
 }
 
 static void draw_title(void) {
+    palette(1);
     draw_image(title, 4, 3, 24, 5);
     for (byte i = 0; i < SIZE(intro); i++) {
 	put_str(intro[i], 0, 10 + i, 0x42);
@@ -405,6 +419,7 @@ static void flip_H(byte x1, byte y1, byte x2, byte y2, byte w, byte h) {
 
 static void draw_level_tab(void);
 static void draw_hud(void) {
+    palette(2);
     memset((byte *) 0x5800, 0x42, 0x300);
 
     draw_tile(edge + 0x00, 0x00, 0x17, 0x02);
@@ -629,6 +644,7 @@ static void finish_game(void) {
     byte duration = 0;
     word period = tune[0];
 
+    palette(1);
     clear_screen();
     put_str("GAME COMPLETE", 9, 12, 0x42);
     draw_image(title, 4, 3, 24, 5);

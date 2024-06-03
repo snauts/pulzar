@@ -510,7 +510,9 @@ static void flip_H(byte x1, byte y1, byte x2, byte y2, byte w, byte h) {
 static void draw_level_tab(void);
 static void draw_hud(void) {
     palette(2);
+#ifdef ZXS
     memset((byte *) 0x5800, 0x42, 0x300);
+#endif
 
     draw_tile(EDGE(0x00), 0x00, 0x17, 0x02);
     draw_tile(EDGE(0x08), 0x17, 0x17, 0x02);

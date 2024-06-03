@@ -146,6 +146,46 @@ static void save_bitmap(struct Header *header, unsigned char *buf, int size) {
     printf("};\n");
 }
 
+static unsigned char consume_pixels_cpc(unsigned char *buf) {
+    unsigned char ret = 0;
+    for (int i = 0; i < 4; i++) {
+	ret = ret << 1;
+	ret |= ((buf[i] >> 6) & 1) | ((buf[i] >> 3) & 0x10);
+    }
+    return ret;
+}
+
+static void save_bitmap_cpc(struct Header *header, unsigned char *buf) {
+    char name[256];
+    int size = header->w * header->h;
+    remove_extension(file_name, name);
+    printf("const byte %s[%d] = {\n", name, size / 4);
+    for (int i = 0; i < size; i += 4) {
+	printf(" 0x%02x,", consume_pixels_cpc(buf + i));
+	if ((i % 32) == 28) printf("\n");
+    }
+    printf("};\n");
+}
+
+static void save_font_cpc(struct Header *header, unsigned char *buf) {
+    int i = 0;
+    char name[256];
+    int size = header->w * header->h;
+    remove_extension(file_name, name);
+    printf("const byte %s[%d] = {\n", name, size / 4);
+    for (int row = 0; row < header->h; row += 8) {
+	for (int x = 0; x < header->w; x += 8) {
+	    for (int y = 0; y < 8; y++) {
+		int offset = (row + y) * header->w + x;
+		printf(" 0x%02x,", consume_pixels_cpc(buf + offset + 0));
+		printf(" 0x%02x,", consume_pixels_cpc(buf + offset + 4));
+		if ((i++ % 4) == 3) printf("\n");
+	    }
+	}
+    }
+    printf("};\n");
+}
+
 static unsigned short pixel_addr(int x, int y) {
     int f = ((y & 7) << 3) | ((y >> 3) & 7) | (y & 0xc0);
     return 0x4000 + (f << 5) + (x >> 3);
@@ -575,11 +615,16 @@ int main(int argc, char **argv) {
 
     switch (argv[1][1]) {
     case 'b':
+#ifdef ZXS
 	for (int i = 3; i < argc; i++) {
 	    colors[i - 2] = atoi(argv[i]);
 	}
 	memset(inkmap, 0, sizeof(inkmap));
 	save_bitmap(&header, buf, size);
+#endif
+#ifdef CPC
+	save_bitmap_cpc(&header, buf);
+#endif
 	break;
     }
 

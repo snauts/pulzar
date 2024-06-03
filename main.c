@@ -178,7 +178,7 @@ static void setup_system(void) {
     cpc_psg(8, 0x00);
 
     static const byte gate_array_init[] = {
-	0x9D, 0x10, 0x54, 0, 0x54, 1, 0x4C, 2, 0x4A, 3, 0x4B
+	0x9D, 0x10, 0x54, 0, 0x54, 1, 0x4D, 2, 0x4C, 3, 0x4A
     };
 
     for (byte i = 0; i < SIZE(gate_array_init); i++) {
@@ -245,13 +245,17 @@ static void draw_image(const byte *img, byte x, byte y, byte w, byte h) {
     word i = 0;
     y = y << 3;
     h = h << 3;
+#if CPC
+    w = w << 1;
+    x = x << 1;
+#endif
     for (byte dy = y; dy < y + h; dy++) {
 	byte *addr = map_y[dy] + x;
 	for (byte dx = 0; dx < w; dx++) {
 	    *addr++ = img[i++];
 	}
     }
-
+#if ZXS
     for (byte dy = y; dy < y + h; dy += 8) {
 	for (byte dx = x; dx < x + w; dx++) {
 	    byte attribute = img[i++];
@@ -260,6 +264,7 @@ static void draw_image(const byte *img, byte x, byte y, byte w, byte h) {
 	    }
 	}
     }
+#endif
 }
 
 static void draw_tile(const byte *img, byte x, byte y, byte color) {
@@ -268,7 +273,9 @@ static void draw_tile(const byte *img, byte x, byte y, byte color) {
     for (byte dy = y; dy < y + 8; dy++) {
 	BYTE(map_y[dy] + x) = img[i++];
     }
+#if ZXS
     BYTE(0x5800 + (y << 2) + x) = color;
+#endif
 }
 
 static const char * const intro[] = {

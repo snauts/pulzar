@@ -13,6 +13,8 @@ static int color_index = 1;
 static unsigned char inkmap[256];
 static unsigned char colors[256];
 
+#define GOLDEN 1.618033
+
 struct Header {
     unsigned char id;
     unsigned char color_type;
@@ -265,10 +267,11 @@ static int diamonds(void) {
     for (unsigned y = 1; y < 251; y += 5) {
 	unsigned x = roundf(q);
 	for (unsigned i = 0; i < 3; i++) {
+	    int n = x - 1 + i;
 	    unfold[x % 128][y + i] = 1;
-	    unfold[(x - 1 + i) % 128][y + 1] = 1;
+	    unfold[n % 128][y + 1] = 1;
 	}
-	q = q + (128.0 * 1.618033);
+	q += 128.0 * GOLDEN;
     }
     return 255;
 }
@@ -470,7 +473,7 @@ static int bubbles(void) {
     float q = 0.0;
     const int size = 8;
     for (unsigned y = size + 1; y < size * 20; y += (size + 1)) {
-	q = q + (128.0 * 1.618033);
+	q += 128.0 * GOLDEN;
 	unsigned x = roundf(q);
 	circle(x, y, 6, 8);
     }

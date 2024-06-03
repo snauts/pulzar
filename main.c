@@ -540,6 +540,9 @@ static void draw_scrap(word i) {
     i = i & 0xfff;
     byte prev = *LINE(i);
     byte data = line_data[i];
+#ifdef CPC
+    data = data << 4;
+#endif
     *LINE(i) = prev ^ data;
 }
 
@@ -917,7 +920,11 @@ static void load_level(void) {
 static void clear_field(void) {
     for (byte y = 0; y < 32; y++) {
 	for (word x = 0; x < 0x1000; x += 32) {
-	    *LINE(x + y) &= ~line_data[x + y];
+	    byte data = line_data[x + y];
+#ifdef CPC
+	    data = data | (data << 4);
+#endif
+	    *LINE(x + y) &= ~data;
 	}
     }
 }

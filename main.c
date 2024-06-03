@@ -726,9 +726,17 @@ static const byte music[] = {
 };
 
 static byte is_vblank_start(void) {
+#ifdef ZXS
     byte ret = vblank;
     if (ret) vblank = 0;
     return ret;
+#endif
+#ifdef CPC
+    byte new = is_vsync();
+    byte old = vblank;
+    vblank = new;
+    return new && !old;
+#endif
 }
 
 static void delay(word loops) {
@@ -775,10 +783,23 @@ static void finish_game(void) {
 	    delay(period + offset);
 	}
 #endif
+#ifdef CPC
+	if (period > 0) {
+	    cpc_psg(8, 0x0F);
+	    cpc_psg(0, period & 0xff);
+	    cpc_psg(1, period >> 8);
+	    period = 0;
+	}
+#endif
 	if (is_vblank_start()) {
 	    duration++;
-	    if (duration >= tune[1] >> 3) {
+	    byte decay = tune[1] >> 3;
+	    if (duration >= decay) {
 		offset += period >> 4;
+#ifdef CPC
+		byte volume = duration - decay;
+		cpc_psg(8, volume < 0xf ? 0xf - volume : 0);
+#endif
 	    }
 	    if (duration == L4 >> 1) {
 		flash_title();
@@ -796,6 +817,9 @@ static void finish_game(void) {
 	    }
 	}
     }
+#ifdef CPC
+    cpc_psg(8, 0x0);
+#endif
     reset();
 }
 

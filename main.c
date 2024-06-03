@@ -724,10 +724,12 @@ static void delay(word loops) {
 }
 
 static void flash_title(void) {
+#ifdef ZXS
     byte *ptr = (byte *) 0x5860;
     while (ptr < (byte *) 0x5900) {
 	*(ptr++) ^= 0x40;
     }
+#endif
 }
 
 static const char * const outro[] = {

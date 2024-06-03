@@ -10,6 +10,7 @@ typedef unsigned short word;
 #define SIZE(array)	(sizeof(array) / sizeof(*(array)))
 
 #ifdef ZXS
+#define is_vsync()	vblank
 #define EDGE(x)		(edge + x)
 #define SPACE_DOWN()	!(in_fe(0x7f) & 0x01)
 #define SETUP_STACK()	__asm__("ld sp, #0xFDFC")
@@ -103,6 +104,13 @@ static void gate_array(byte reg) {
     __asm__("out (c), a"); reg;
 }
 
+static byte is_vsync(void) __naked {
+    __asm__("ld b, #0xf5");
+    __asm__("in a, (c)");
+    __asm__("and a, #1");
+    __asm__("ret");
+}
+
 static byte cpc_psg(byte reg, byte val) __naked {
     __asm__("ld b, #0xf4");
     __asm__("ld c, a"); reg;
@@ -171,7 +179,7 @@ static void palette(byte num) {
 }
 
 static void vblank_delay(word ticks) {
-    for (word i = 0; i < ticks; i++) { if (vblank) break; }
+    for (word i = 0; i < ticks; i++) { if (is_vsync()) break; }
 }
 
 static void crash_sound(void) {
@@ -196,7 +204,7 @@ static void level_sound(void) {
 }
 
 static void wait_vblank(void) {
-    while (!vblank) {
+    while (!is_vsync()) {
 	crash_sound();
 	level_sound();
     }

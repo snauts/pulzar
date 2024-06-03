@@ -578,6 +578,7 @@ int main(int argc, char **argv) {
     if (argc < 2) {
 	printf("USAGE: tga-dump [option] file.tga\n");
 	printf("  -b   save bitmap zx\n");
+	printf("  -f   save font cpc\n");
 	printf("  -l   save line data\n");
 	printf("  -g   save game data\n");
 	return 0;
@@ -624,6 +625,11 @@ int main(int argc, char **argv) {
 #endif
 #ifdef CPC
 	save_bitmap_cpc(&header, buf);
+#endif
+	break;
+    case 'f':
+#ifdef CPC
+	save_font_cpc(&header, buf);
 #endif
 	break;
     }

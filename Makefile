@@ -17,6 +17,7 @@ prg:
 	./tga-dump -b circuit.tga 2 10 >> data.h
 	./tga-dump -l >> data.h
 	./tga-dump -g >> data.h
+	./tga-dump -f font_cpc.tga >> data.h
 	@sdcc $(CFLAGS) $(TYPE) main.c -o pulzar.ihx
 	hex2bin pulzar.ihx > /dev/null
 

@@ -194,7 +194,7 @@ static void clear_screen(void) {
     out_fe(0);
 #endif
 #ifdef CPC
-    memset(0xC000, 0x00, 0x4000);
+    memset((byte *) 0xC000, 0x00, 0x4000);
 #endif
 }
 
@@ -212,12 +212,26 @@ static void precalculate(void) {
 }
 
 static void put_char(char symbol, byte x, byte y, byte color) {
+#ifdef ZXS
     y = y << 3;
     byte *addr = (byte *) 0x3C00 + (symbol << 3);
     for (byte i = 0; i < 8; i++) {
 	map_y[y + i][x] = *addr++;
     }
     BYTE(0x5800 + (y << 2) + x) = color;
+#endif
+#ifdef CPC
+    color;
+    x = x << 1;
+    y = y << 3;
+    word glyph = symbol - 0x20;
+    const byte *addr = font_cpc + (glyph << 4);
+    for (byte i = 0; i < 8; i++) {
+	byte *ptr = map_y[y++] + x;
+	*ptr++ = *addr++;
+	*ptr++ = *addr++;
+    }
+#endif
 }
 
 static void put_str(const char *msg, byte x, byte y, byte color) {
@@ -275,6 +289,9 @@ static void draw_tile(const byte *img, byte x, byte y, byte color) {
     }
 #if ZXS
     BYTE(0x5800 + (y << 2) + x) = color;
+#endif
+#if CPC
+    color;
 #endif
 }
 

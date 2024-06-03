@@ -322,17 +322,17 @@ static int curve(void) {
 }
 
 static int twinkle_lines(int center, int offset, int y) {
-    const int thick = 2;
-    for (int i = 0; i < thick; i++) {
-	unfold[(center + offset + i) % 128][y] = 1;
-	unfold[(center - offset - i) % 128][y] = 1;
+    for (int i = center - offset; i < center + offset; i++) {
+	unfold[i % 128][y] = 1;
     }
 }
 
 static void snow_flake(int x, int y) {
+    for (int i = -6; i <= 6; i++) {
+	unfold[x + 0][y + i] = 1;
+	unfold[x + i][y + 0] = 1;
+    }
     for (int i = -4; i <= 4; i++) {
-	unfold[x][y + i] = 1;
-	unfold[x + i][y] = 1;
 	unfold[x + i][y + i] = 1;
 	unfold[x + i][y - i] = 1;
     }
@@ -347,10 +347,10 @@ static int twinkle(void) {
 	}
 	else if (y < 2 * size) {
 	    twinkle_lines(size, 2 * size - y - 1, y + 1);
-	    twinkle_lines(3 * size, y - size, y + 1);
+	    twinkle_lines(128 - size, y - size, y + 1);
 	}
 	else if (y < 3 * size) {
-	    twinkle_lines(3 * size, 3 * size - y - 1, y + 1);
+	    twinkle_lines(128 - size, 3 * size - y - 1, y + 1);
 	}
     }
     snow_flake(32 + 16, 80);

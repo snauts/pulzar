@@ -507,6 +507,7 @@ static int solaris(void) {
 }
 
 int radiate(void) {
+    srand(42);
     int x = 0, dir = 1;
     for (unsigned y = 0; y < 256; y += 4) {
 	x += 4 * dir;

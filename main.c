@@ -10,6 +10,7 @@ typedef unsigned short word;
 #define SIZE(array)	(sizeof(array) / sizeof(*(array)))
 
 #ifdef ZXS
+#define STREAK		10
 #define is_vsync()	vblank
 #define EDGE(x)		(edge + x)
 #define SPACE_DOWN()	!(in_fe(0x7f) & 0x01)
@@ -19,6 +20,7 @@ typedef unsigned short word;
 #endif
 
 #ifdef CPC
+#define STREAK		20
 #define EDGE(x)		(edge + (x << 1))
 #define SPACE_DOWN()	!(cpc_keys() & 0x80)
 #define SETUP_STACK()	__asm__("ld sp, #0x95FC")
@@ -162,11 +164,9 @@ static const byte pal2[] = {
 static void init_gate_array(const byte *ptr, byte size) {
     for (byte i = 0; i < size; i++) gate_array(ptr[i]);
 }
-#endif
 
 static void palette(byte num) {
     num;
-#if CPC
     switch (num) {
     case 1:
 	init_gate_array(pal1, SIZE(pal1));
@@ -175,8 +175,8 @@ static void palette(byte num) {
 	init_gate_array(pal2, SIZE(pal2));
 	break;
     }
-#endif
 }
+#endif
 
 static void vblank_delay(word ticks) {
     for (word i = 0; i < ticks; i++) { if (is_vsync()) break; }
@@ -292,6 +292,7 @@ static void clear_screen(void) {
 #endif
 #ifdef CPC
     memset((byte *) 0xC000, 0x00, 0x4000);
+    palette(1);
 #endif
 }
 
@@ -413,7 +414,6 @@ static void wait_space(void) {
 }
 
 static void draw_title(void) {
-    palette(1);
     draw_image(title, 4, 3, 24, 5);
     for (byte i = 0; i < SIZE(intro); i++) {
 	put_str(intro[i], 0, 10 + i, 0x42);
@@ -427,7 +427,6 @@ static const char * const lose[] = {
 };
 
 static void game_over(void) {
-    palette(1);
     put_str("GAME OVER", 11, 10, 0x42);
     for (byte i = 0; i < SIZE(lose); i++) {
 	put_str(lose[i], 0, 12 + i, 0x42);
@@ -509,9 +508,11 @@ static void flip_H(byte x1, byte y1, byte x2, byte y2, byte w, byte h) {
 
 static void draw_level_tab(void);
 static void draw_hud(void) {
-    palette(2);
 #ifdef ZXS
     memset((byte *) 0x5800, 0x42, 0x300);
+#endif
+#ifdef CPC
+    palette(2);
 #endif
 
     draw_tile(EDGE(0x00), 0x00, 0x17, 0x02);
@@ -745,7 +746,6 @@ static void finish_game(void) {
     byte duration = 0;
     word period = tune[0];
 
-    palette(1);
     clear_screen();
     put_str("GAME COMPLETE", 9, 12, 0x42);
     draw_image(title, 4, 3, 24, 5);
@@ -790,20 +790,33 @@ static byte launch_position(void) {
     return (pos & 0x01f) < 8 && (pos & 0xfff) < 256;
 }
 
+static void hyperspace_sound(word j, byte clear) {
+    word pitch = (clear ? 160 : 320) - (j << 4);
+
+#ifdef ZXS
+    while (!vblank) {
+	out_fe(0x10);
+	vblank_delay(pitch);
+	out_fe(0x0);
+	vblank_delay(pitch);
+    }
+    vblank = 0;
+#endif
+#ifdef CPC
+    pitch <<= 1;
+    if (j & 1) wait_vblank();
+    if (j == 0) cpc_psg(8, 0x0F);
+    cpc_psg(0, pitch & 0xff);
+    cpc_psg(1, pitch >> 8);
+#endif
+}
+
 static void hyperspace_streaks(word *lines, byte clear) {
-    word pitch = clear ? 160 : 320;
-    for (word j = 0; j < 10; j++) {
-	while (!vblank) {
-	    word delay = pitch - (j << 4);
-	    out_fe(0x10);
-	    vblank_delay(delay);
-	    out_fe(0x0);
-	    vblank_delay(delay);
-	}
-	vblank = 0;
+    for (word j = 0; j < STREAK; j++) {
+	hyperspace_sound(j, clear);
 	for (byte i = 0; i < 3; i++) {
 	    word addr = lines[i];
-	    if (j > 9 - i) break;
+	    if (j > STREAK - i - 1) break;
 	    if (dir) addr += j; else addr -= j;
 	    BYTE(addr) = clear ? 0 : 0xff;
 	}
@@ -834,6 +847,9 @@ static void emit_slinger(void) {
     lines[2] = addr_of(pos + 1);
     hyperspace_streaks(lines, 0);
     hyperspace_streaks(lines, 1);
+#ifdef CPC
+    cpc_psg(8, 0x10);
+#endif
     for (byte i = 0; i < 50; i++) {
 	wait_vblank();
     }

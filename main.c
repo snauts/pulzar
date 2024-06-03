@@ -675,6 +675,10 @@ static void emit_number(void) {
     load_generated(1, number);
 }
 
+static void emit_bubbles(void) {
+    load_generated(1, bubbles);
+}
+
 static const struct Level level_list[] = {
     { &emit_whirler, "WHIRLER" },
     { &emit_reverse, "REVERSE" },
@@ -683,6 +687,7 @@ static const struct Level level_list[] = {
     { &emit_diamond, "DIAMOND" },
     { &emit_number,  "NUMBER?" },
     { &emit_rings,   "(RINGS)" },
+    { &emit_bubbles, "BUBBLES" },
     { &emit_twinkle, "TWINKLE" },
     { &emit_gamma,   "/GAMMA/" },
     { &emit_slinger, "SLING->" },

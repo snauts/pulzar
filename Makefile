@@ -20,14 +20,20 @@ prg:
 	@sdcc $(CFLAGS) $(TYPE) main.c -o pulzar.ihx
 	hex2bin pulzar.ihx > /dev/null
 
-zxs:
-	CODE=0x8000 DATA=0xf000	TYPE=-DZXS make prg
+tap:
 	bin2tap -b -r $(shell printf "%d" 0x$$($(ENTRY))) pulzar.bin
 
-cpc:
+zxs:
+	CODE=0x8000 DATA=0xf000	TYPE=-DZXS make prg
+	@make tap
+
+dsk:
 	iDSK -n pulzar.dsk
-	CODE=0x1000 DATA=0x8000	TYPE=-DCPC make prg
 	iDSK pulzar.dsk -f -t 1 -c 1000 -e $(shell $(ENTRY)) -i pulzar.bin
+
+cpc:
+	CODE=0x1000 DATA=0x8000	TYPE=-DCPC make prg
+	@make dsk
 
 mame: cpc
 	mame cpc664 \

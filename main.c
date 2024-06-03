@@ -9,12 +9,19 @@ typedef unsigned short word;
 #define WORD(addr)	(* (volatile word *) (addr))
 #define SIZE(array)	(sizeof(array) / sizeof(*(array)))
 
+#ifdef ZXS
 #define SETUP_STACK()	__asm__("ld sp, #0xFDFC")
+#define IRQ_BASE	0xfe00
+#endif
+
+#ifdef CPC
+#define SETUP_STACK()	__asm__("ld sp, #0x95FC")
+#define IRQ_BASE	0x9600
+#endif
+
 #define SPACE_DOWN()	!(in_fe(0x7f) & 0x01)
 
 #define LINE(x)		(byte *) (line_addr[x])
-
-#define IRQ_BASE	0xfe00
 
 #include "data.h"
 
@@ -51,12 +58,14 @@ struct Level {
 };
 
 static void interrupt(void) __naked {
+#ifdef ZXS
     __asm__("di");
     __asm__("push af");
     __asm__("ld a, #1");
     __asm__("ld (_vblank), a");
     __asm__("pop af");
     __asm__("ei");
+#endif
     __asm__("reti");
 }
 
@@ -79,6 +88,35 @@ static byte in_fe(byte a) __naked {
     __asm__("in a, (#0xfe)"); a;
     __asm__("ret");
 }
+
+#ifdef CPC
+static word mul80(word x) {
+    return (x << 6) + (x << 4);
+}
+
+static void gate_array(byte reg) {
+    __asm__("ld bc, #0x7f00");
+    __asm__("out (c), a"); reg;
+}
+
+static byte cpc_psg(byte reg, byte val) __naked {
+    __asm__("ld b, #0xf4");
+    __asm__("ld c, a"); reg;
+    __asm__("out (c), c");
+    __asm__("ld bc, #0xf6c0");
+    __asm__("out (c), c");
+    __asm__("ld bc, #0xf600");
+    __asm__("out (c), c");
+    __asm__("ld bc, #0xf680");
+    __asm__("out (c), c");
+    __asm__("ld b, #0xf4");
+    __asm__("ld c, l"); val;
+    __asm__("out (c), c");
+    __asm__("ld bc, #0xf600");
+    __asm__("out (c), c");
+    __asm__("ret");
+}
+#endif
 
 static void vblank_delay(word ticks) {
     for (word i = 0; i < ticks; i++) { if (vblank) break; }
@@ -124,18 +162,52 @@ static void setup_system(void) {
     WORD(jmp_addr + 1) = ADDR(&interrupt);
     memset((byte *) IRQ_BASE, top, 0x101);
     setup_irq(IRQ_BASE >> 8);
+
+#ifdef CPC
+    __asm__("ld bc, #0xbc0c");
+    __asm__("out (c), c");
+    __asm__("ld bc, #0xbd33");
+    __asm__("out (c), c");
+
+    __asm__("ld bc, #0xbc0d");
+    __asm__("out (c), c");
+    __asm__("ld bc, #0xbdd4");
+    __asm__("out (c), c");
+
+    cpc_psg(7, 0xB8);
+    cpc_psg(8, 0x00);
+
+    static const byte gate_array_init[] = {
+	0x9D, 0x10, 0x54, 0, 0x54, 1, 0x4C, 2, 0x4A, 3, 0x4B
+    };
+
+    for (byte i = 0; i < SIZE(gate_array_init); i++) {
+	gate_array(gate_array_init[i]);
+    }
+#endif
 }
 
 static void clear_screen(void) {
+#ifdef ZXS
     memset((byte *) 0x5800, 0x00, 0x300);
     memset((byte *) 0x4000, 0x00, 0x1800);
     out_fe(0);
+#endif
+#ifdef CPC
+    memset(0xC000, 0x00, 0x4000);
+#endif
 }
 
 static void precalculate(void) {
     for (byte y = 0; y < 192; y++) {
+#ifdef ZXS
 	byte f = ((y & 7) << 3) | ((y >> 3) & 7) | (y & 0xC0);
 	map_y[y] = (byte *) (0x4000 + (f << 5));
+#endif
+#ifdef CPC
+	word f = ((y & 7) << 11) | mul80(y >> 3);
+	map_y[y] = (byte *) (0xC000 + f);
+#endif
     }
 }
 

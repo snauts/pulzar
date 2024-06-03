@@ -383,6 +383,7 @@ static void draw_player(void) {
 	death_clean_up();
     }
     else {
+	crash_sound();
 	if (counter & 1) {
 	    draw_debris(die >> 1);
 	    move_ship(32);

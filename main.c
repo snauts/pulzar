@@ -679,12 +679,17 @@ static void emit_bubbles(void) {
     load_generated(1, bubbles);
 }
 
+static void emit_solaris(void) {
+    load_generated(2, solaris);
+}
+
 static const struct Level level_list[] = {
     { &emit_whirler, "WHIRLER" },
     { &emit_reverse, "REVERSE" },
     { &emit_squigle, "WAVEING" },
     { &emit_curve,   "&CURVES" },
     { &emit_diamond, "DIAMOND" },
+    { &emit_solaris, "*SOLAR*" },
     { &emit_number,  "NUMBER?" },
     { &emit_rings,   "(RINGS)" },
     { &emit_bubbles, "BUBBLES" },

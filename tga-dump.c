@@ -309,9 +309,8 @@ static int curve(void) {
     int offset = 0;
     for (unsigned y = 0; y < 128; y++) {
 	for (unsigned x = 0; x < 128; x++) {
-	    float offset = 16.0 * sin(2 * M_PI * y / 64.0);
-	    unfold[x][y] = roundf(40.0 - offset) < x
-		&& x < roundf(88.0 + offset);
+	    float q = 16.0 * sin(2 * M_PI * y / 64.0);
+	    unfold[x][y] = roundf(40.0 - q) < x && x < roundf(88.0 + q);
 	}
 	unsigned char buf[128];
 	for (unsigned x = 0; x < 128; x++) {
@@ -478,6 +477,29 @@ static int bubbles(void) {
     return 21 * size;
 }
 
+static int solaris(void) {
+    int offset = 0;
+    for (unsigned y = 0; y < 128; y++) {
+	for (unsigned x = 0; x < 128; x++) {
+	    float q1 = 8.0 * sin(2 * M_PI * y / 64.0);
+	    float q2 = 8.0 * cos(2 * M_PI * y / 64.0);
+	    float r1 = 8.0 * sin(3 * M_PI * y / 64.0);
+	    float r2 = 8.0 * cos(3 * M_PI * y / 64.0);
+	    unfold[x][y] = (roundf(24 - q1) < x && x < roundf(40 + q2))
+			|| (roundf(88 - r1) < x && x < roundf(104 + r2));
+	}
+	unsigned char buf[128];
+	for (unsigned x = 0; x < 128; x++) {
+	    int offset = 32.0 * sin(M_PI * (y / 128.0));
+	    buf[x] = unfold[(x + offset) % 128][y];
+	}
+	for (unsigned x = 0; x < 128; x++) {
+	    unfold[x][y] = buf[x];
+	}
+    }
+    return 128;
+}
+
 static void save_game(void) {
     save_buffer("squiggly", &squiggly);
     save_buffer("diamonds", &diamonds);
@@ -487,6 +509,7 @@ static void save_game(void) {
     save_buffer("twinkle", &twinkle);
     save_buffer("number", &number);
     save_buffer("bubbles", &bubbles);
+    save_buffer("solaris", &solaris);
 }
 
 int main(int argc, char **argv) {

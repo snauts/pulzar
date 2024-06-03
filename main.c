@@ -182,6 +182,7 @@ static void vblank_delay(word ticks) {
     for (word i = 0; i < ticks; i++) { if (is_vsync()) break; }
 }
 
+#ifdef ZXS
 static void crash_sound(void) {
     if (die && die < 8) {
 	word pitch = 8 + (die << 3);
@@ -202,11 +203,55 @@ static void level_sound(void) {
 	vblank_delay(flash);
     }
 }
+#endif
+
+#ifdef CPC
+static void crash_sound(void) {
+    if (die) {
+	if (die < 8) {
+	    if (die == 1) cpc_psg(8, 0x0F);
+	    word pitch = 225 + (die << 6);
+	    cpc_psg(0, pitch & 0xff);
+	    cpc_psg(1, pitch >> 8);
+	}
+	else {
+	    cpc_psg(8, 0x10);
+	}
+    }
+}
+
+static void level_sound(void) {
+    static const byte jerk_color[] = { 0x4A, 0x54, 0x4B, 0x4C };
+
+    if (flash) {
+	gate_array(0x10);
+	gate_array(jerk_color[flash & 3]);
+
+	if (flash == 32) {
+	    cpc_psg(8, 0x0F);
+	}
+	if (flash > 1) {
+	    word pitch = 225 - ((32 - flash) << 2);
+	    cpc_psg(0, pitch & 0xff);
+	    cpc_psg(1, pitch >> 8);
+	}
+	else {
+	    cpc_psg(8, 0x10);
+	}
+    }
+}
+#endif
 
 static void wait_vblank(void) {
+#ifdef CPC
+    crash_sound();
+    level_sound();
+#endif
     while (!is_vsync()) {
+#ifdef ZXS
 	crash_sound();
 	level_sound();
+#endif
     }
     vblank = 0;
 }

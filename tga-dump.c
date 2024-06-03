@@ -477,16 +477,19 @@ static int bubbles(void) {
     return 21 * size;
 }
 
+static int interval(int x, int y, int b1, int b2) {
+    float q1 = 8.0 * sin(2.0 * M_PI * y / 64.0);
+    float q2 = 8.0 * cos(2.0 * M_PI * y / 64.0);
+    return (roundf(b1 - q1) < x && x < roundf(b2 + q2));
+}
+
 static int solaris(void) {
     int offset = 0;
     for (unsigned y = 0; y < 128; y++) {
 	for (unsigned x = 0; x < 128; x++) {
-	    float q1 = 8.0 * sin(2 * M_PI * y / 64.0);
-	    float q2 = 8.0 * cos(2 * M_PI * y / 64.0);
-	    float r1 = 8.0 * sin(3 * M_PI * y / 64.0);
-	    float r2 = 8.0 * cos(3 * M_PI * y / 64.0);
-	    unfold[x][y] = (roundf(24 - q1) < x && x < roundf(40 + q2))
-			|| (roundf(88 - r1) < x && x < roundf(104 + r2));
+	    int z = (y + 32) % 128;
+	    unfold[x][y] = interval(x, y, 24, 40)
+			|| interval(x, z, 88, 104);
 	}
 	unsigned char buf[128];
 	for (unsigned x = 0; x < 128; x++) {

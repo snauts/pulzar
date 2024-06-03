@@ -187,12 +187,23 @@ static void save_font_cpc(struct Header *header, unsigned char *buf) {
 }
 
 static unsigned short pixel_addr(int x, int y) {
+#ifdef ZXS
     int f = ((y & 7) << 3) | ((y >> 3) & 7) | (y & 0xc0);
     return 0x4000 + (f << 5) + (x >> 3);
+#endif
+#ifdef CPC
+    int f = ((y & 7) << 11) | (80 * (y >> 3));
+    return 0xC000 + f + (x >> 2);
+#endif
 }
 
 static unsigned char pixel_data(int x) {
+#ifdef ZXS
     return (1 << (7 - (x & 7)));
+#endif
+#ifdef CPC
+    return (1 << (3 - (x & 3)));
+#endif
 }
 
 unsigned char line_data[0x10000];

@@ -432,7 +432,7 @@ static void push_whirlpool(word i) {
 }
 
 static void emit_whirlpool(word next, int8 dir) {
-    const byte w = 12;
+    const byte w = 10;
     word i = next << 5;
     if (counter == 0) {
 	for (byte n = 0; n < w; n++) {

@@ -896,11 +896,11 @@ static void draw_level_tab(void) {
     draw_tile(EDGE(0x08), 0x1F, y2, 0x02);
 
     for (byte i = 24; i < 31; i++) {
-	draw_tile(EDGE(0x48), i, y1, 0x02);
-	draw_tile(EDGE(0x40), i, y2, 0x02);
+	draw_tile(EDGE(0x68), i, y1, 0x02);
+	draw_tile(EDGE(0x68), i, y2, 0x02);
     }
     for (byte i = y1 + 1; i < y2; i++) {
-	draw_tile(EDGE(0x58), 0x1F, i, 0x02);
+	draw_tile(EDGE(0x70), 0x1F, i, 0x02);
     }
 
     flip_V(1,  48, 24, (y1 << 3) - 24, 2, 24);

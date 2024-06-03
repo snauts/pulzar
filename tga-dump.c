@@ -345,10 +345,10 @@ static void line(int x1, int y1, int x2, int y2) {
     }
 }
 
-static void circle(int x, int y, int r) {
-    for (float i = 0; i < 2 * M_PI * r + 1.0; i += 0.1) {
-	int dx = roundf((float) r * sin(i));
-	int dy = roundf((float) r * cos(i));
+static void circle(int x, int y, int r1, int r2) {
+    for (float i = 0; i <= 2 * M_PI; i += 0.01) {
+	int dx = roundf((float) r1 * sin(i));
+	int dy = roundf((float) r2 * cos(i));
 	line(x, y, x + dx, y + dy);
     }
 }
@@ -473,7 +473,7 @@ static int bubbles(void) {
     for (unsigned y = size + 1; y < size * 20; y += (size + 1)) {
 	q = q + (128.0 * 1.618033);
 	unsigned x = roundf(q);
-	circle(x, y, 8);
+	circle(x, y, 6, 8);
     }
     return 21 * size;
 }

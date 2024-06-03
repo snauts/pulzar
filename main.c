@@ -422,6 +422,9 @@ static byte flip_bits(byte source) {
 	result |= source & 1;
 	source = source >> 1;
     }
+#ifdef CPC
+    result = (result >> 4) | (result << 4);
+#endif
     return result;
 }
 

@@ -10,15 +10,19 @@ typedef unsigned short word;
 #define SIZE(array)	(sizeof(array) / sizeof(*(array)))
 
 #ifdef ZXS
+#define EDGE(x)		(edge + x)
 #define SPACE_DOWN()	!(in_fe(0x7f) & 0x01)
 #define SETUP_STACK()	__asm__("ld sp, #0xFDFC")
 #define IRQ_BASE	0xfe00
+#define TILE_SIZE	8
 #endif
 
 #ifdef CPC
+#define EDGE(x)		(edge + (x << 1))
 #define SPACE_DOWN()	!(cpc_keys() & 0x80)
 #define SETUP_STACK()	__asm__("ld sp, #0x95FC")
 #define IRQ_BASE	0x9600
+#define TILE_SIZE	16
 #endif
 
 #define LINE(x)		(byte *) (line_addr[x])
@@ -153,9 +157,7 @@ static void init_gate_array(const byte *ptr, byte size) {
 #endif
 
 static void palette(byte num) {
-#if ZXS
     num;
-#endif
 #if CPC
     switch (num) {
     case 1:
@@ -326,14 +328,18 @@ static void draw_image(const byte *img, byte x, byte y, byte w, byte h) {
 static void draw_tile(const byte *img, byte x, byte y, byte color) {
     word i = 0;
     y = y << 3;
+#if CPC
+    x = x << 1;
+    color;
+#endif
     for (byte dy = y; dy < y + 8; dy++) {
-	BYTE(map_y[dy] + x) = img[i++];
+	BYTE(map_y[dy] + x + 0) = img[i++];
+#if CPC
+	BYTE(map_y[dy] + x + 1) = img[i++];
+#endif
     }
 #if ZXS
     BYTE(0x5800 + (y << 2) + x) = color;
-#endif
-#if CPC
-    color;
 #endif
 }
 
@@ -376,7 +382,7 @@ static void game_over(void) {
 }
 
 static void life_sprite(byte offset, byte pos) {
-    draw_tile(edge + offset, 0x16 - pos, 0x17, 0x02);
+    draw_tile(EDGE(offset), 0x16 - pos, 0x17, 0x02);
 }
 
 static byte *attribute_addr(byte x, byte y) {
@@ -429,22 +435,22 @@ static void draw_hud(void) {
     palette(2);
     memset((byte *) 0x5800, 0x42, 0x300);
 
-    draw_tile(edge + 0x00, 0x00, 0x17, 0x02);
-    draw_tile(edge + 0x08, 0x17, 0x17, 0x02);
-    draw_tile(edge + 0x10, 0x00, 0x00, 0x02);
-    draw_tile(edge + 0x18, 0x17, 0x00, 0x02);
+    draw_tile(EDGE(0x00), 0x00, 0x17, 0x02);
+    draw_tile(EDGE(0x08), 0x17, 0x17, 0x02);
+    draw_tile(EDGE(0x10), 0x00, 0x00, 0x02);
+    draw_tile(EDGE(0x18), 0x17, 0x00, 0x02);
 
     for (byte i = 1; i < 23; i++) {
-	draw_tile(edge + 0x40, i, 0x17, 0x02);
-	draw_tile(edge + 0x48, i, 0x00, 0x02);
-	draw_tile(edge + 0x50, 0x00, i, 0x02);
-	draw_tile(edge + 0x58, 0x17, i, 0x02);
+	draw_tile(EDGE(0x40), i, 0x17, 0x02);
+	draw_tile(EDGE(0x48), i, 0x00, 0x02);
+	draw_tile(EDGE(0x50), 0x00, i, 0x02);
+	draw_tile(EDGE(0x58), 0x17, i, 0x02);
     }
 
-    const byte *ptr = edge + 0x20;
+    const byte *ptr = EDGE(0x20);
     for (byte i = 0; i < 4; i++) {
 	draw_tile(ptr, i + 1, 0x17, 0x02);
-	ptr += 8;
+	ptr += TILE_SIZE;
     }
 
     for (int8 i = 0; i < lives; i++) {
@@ -851,15 +857,15 @@ static byte text_pos(byte i) {
 static void draw_level_tab(void) {
     byte y1 = text_pos(0) - 1;
     byte y2 = text_pos(SIZE(level_list));
-    draw_tile(edge + 0x18, 0x1F, y1, 0x02);
-    draw_tile(edge + 0x08, 0x1F, y2, 0x02);
+    draw_tile(EDGE(0x18), 0x1F, y1, 0x02);
+    draw_tile(EDGE(0x08), 0x1F, y2, 0x02);
 
     for (byte i = 24; i < 31; i++) {
-	draw_tile(edge + 0x48, i, y1, 0x02);
-	draw_tile(edge + 0x40, i, y2, 0x02);
+	draw_tile(EDGE(0x48), i, y1, 0x02);
+	draw_tile(EDGE(0x40), i, y2, 0x02);
     }
     for (byte i = y1 + 1; i < y2; i++) {
-	draw_tile(edge + 0x58, 0x1F, i, 0x02);
+	draw_tile(EDGE(0x58), 0x1F, i, 0x02);
     }
 
     flip_V(1,  48, 24, (y1 << 3) - 24, 2, 24);

@@ -275,7 +275,7 @@ static int diamonds(void) {
 
 static int rings(void) {
     float q = 1.0;
-    for (unsigned x = 0; x < 32; x++) {
+    for (unsigned x = 0; x < 32; x += 2) {
 	for (unsigned y = 30; y < 32; y++) {
 	    unfold[x +  0][y] = 1;
 	    unfold[x + 64][y] = 1;

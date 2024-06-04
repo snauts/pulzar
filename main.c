@@ -711,9 +711,8 @@ static void emit_reverse(void) {
 #define A4	142
 #endif
 
-
-#define L2  40
-#define L4  20
+#define L2	32
+#define L4	16
 
 static const byte music[] = {
     C4, L4, C4, L4, G4, L4, G4, L4, A4, L4, A4, L4, G4, L2,
@@ -722,6 +721,13 @@ static const byte music[] = {
     G4, L4, G4, L4, F4, L4, F4, L4, E4, L4, E4, L4, D4, L2,
     C4, L4, C4, L4, G4, L4, G4, L4, A4, L4, A4, L4, G4, L2,
     F4, L4, F4, L4, E4, L4, E4, L4, D4, L4, D4, L4, C4, L2,
+    0, 0
+};
+
+static const byte chord[] = {
+    C4, L2, C4, L2, F4, L2, C4, L2, F4, L2, C4, L2, G4, L2, C4, L2,
+    C4, L2, F4, L2, C4, L2, G4, L2, C4, L2, F4, L2, C4, L2, G4, L2,
+    C4, L2, C4, L2, F4, L2, C4, L2, F4, L2, C4, L2, G4, L2, C4, L2,
     0, 0
 };
 
@@ -743,7 +749,8 @@ static void delay(word loops) {
     for (word i = 0; i < loops; i++) { }
 }
 
-static void flash_title(void) {
+static void flash_title(byte number) {
+    if (number != 1) return;
 #ifdef ZXS
     byte *ptr = (byte *) 0x5860;
     while (ptr < (byte *) 0x5900) {
@@ -775,67 +782,121 @@ static void reverse(void) {
     }
 }
 
+struct Channel {
+    const byte *tune;
+    byte duration;
+    byte period;
+    byte volume;
+    byte num;
+};
+
+static void play_note(struct Channel *channel) {
+    channel;
+
+#ifdef CPC
+    byte number = channel->num;
+    word period = channel->period;
+    if (number == 0) period <<= 1;
+
+    if (period > 0) {
+	byte offset = (number << 1);
+	cpc_psg(0 + offset, period & 0xff);
+	cpc_psg(1 + offset, period >> 8);
+    }
+
+    cpc_psg(8 + number, channel->volume);
+#endif
+}
+
+static byte music_done;
+static void next_note(struct Channel *channel) {
+    const byte *tune = channel->tune;
+    if (tune[1] == 0) {
+	music_done = 1;
+	return;
+    }
+    channel->period = tune[0];
+    channel->duration = 0;
+    channel->volume = 0xf;
+    flash_title(channel->num);
+    play_note(channel);
+}
+
+static void advance_channel(struct Channel *channel) {
+    byte duration = ++channel->duration;
+    byte length = channel->tune[1];
+    byte number = channel->num;
+    byte decay = length >> 1;
+
+    if (duration >= decay) {
+	channel->volume >>= 1;
+	play_note(channel);
+	if (duration == decay) {
+	    flash_title(number);
+	}
+    }
+    if (duration >= length) {
+	channel->tune += 2;
+	next_note(channel);
+    }
+}
+
+static void beeper(struct Channel *channel) {
+    channel;
+
+#ifdef ZXS
+    for (byte i = 0; i < 2; i++) {
+	if (i == 0) {
+	    channel++;
+	    continue;
+	}
+	byte period = channel->period;
+	byte volume = channel->volume;
+
+	byte offset = period >> volume;
+	byte should = period > 0 && volume > 0;
+	if (should) out_fe(0x10);
+	delay(period - offset);
+	if (should) out_fe(0x00);
+	delay(period - offset);
+	channel++;
+    }
+#endif
+}
+
 static void finish_game(void) {
-    const byte *tune = music;
-
-    word offset = 0;
-    byte duration = 0;
-    word period = tune[0];
-
     clear_screen();
     put_str("GAME COMPLETE", 9, 12, 0x42);
     draw_image(title, 4, 3, 24, 5);
-    flash_title();
+    flash_title(1);
 
     for (byte i = 0; i < SIZE(outro); i++) {
 	put_str(outro[i], 2, 17 + i, 0x42);
     }
 
+    const byte *base[] = { chord, music };
+    struct Channel channels[SIZE(base)];
+
+    for (byte i = 0; i < SIZE(base); i++) {
+	channels[i].num = i;
+	channels[i].tune = base[i];
+	next_note(channels + i);
+    }
+
+    music_done = 0;
     while (!SPACE_DOWN()) {
-#ifdef ZXS
-	if (period > offset) {
-	    out_fe(0x10);
-	    delay(period - offset);
-	    out_fe(0x00);
-	    delay(period + offset);
-	}
-#endif
-#ifdef CPC
-	if (period > 0) {
-	    cpc_psg(8, 0x0F);
-	    cpc_psg(0, period & 0xff);
-	    cpc_psg(1, period >> 8);
-	    period = 0;
-	}
-#endif
-	if (is_vblank_start()) {
-	    duration++;
-	    byte decay = tune[1] >> 3;
-	    if (duration >= decay) {
-		offset += period >> 4;
-#ifdef CPC
-		byte volume = duration - decay;
-		cpc_psg(8, volume < 0xf ? 0xf - volume : 0);
-#endif
-	    }
-	    if (duration == L4 >> 1) {
-		flash_title();
-	    }
-	    if (duration >= tune[1]) {
-		tune += 2;
-		if (tune[1] == 0) {
-		    wait_space();
-		    break;
+	if (!music_done) {
+	    beeper(channels);
+
+	    if (is_vblank_start()) {
+		for (byte i = 0; i < SIZE(base); i++) {
+		    advance_channel(channels + i);
 		}
-		flash_title();
-		period = *tune;
-		duration = 0;
-		offset = 0;
 	    }
 	}
     }
 #ifdef CPC
-    cpc_psg(8, 0x0);
+    for (byte i = 0; i < 3; i++) cpc_psg(8 + i, 0);
 #endif
     reset();
 }

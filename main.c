@@ -178,7 +178,7 @@ static void palette(byte num) {
 }
 #endif
 
-static void vblank_delay(word ticks) {
+static void delay_vblank(word ticks) {
     for (word i = 0; i < ticks; i++) { if (is_vsync()) break; }
 }
 
@@ -187,9 +187,9 @@ static void crash_sound(void) {
     if (die && die < 8) {
 	word pitch = 8 + (die << 3);
 	out_fe(0x10);
-	vblank_delay(pitch);
+	delay_vblank(pitch);
 	out_fe(0x0);
-	vblank_delay(pitch);
+	delay_vblank(pitch);
     }
 }
 
@@ -198,9 +198,9 @@ static void level_sound(void) {
     if (flash) {
 	byte color = jerk_color[flash & 3];
 	out_fe(0x10 | color);
-	vblank_delay(flash);
+	delay_vblank(flash);
 	out_fe(0x0 | color);
-	vblank_delay(flash);
+	delay_vblank(flash);
     }
 }
 #endif
@@ -904,9 +904,9 @@ static void hyperspace_sound(word j, byte clear) {
 #ifdef ZXS
     while (!vblank) {
 	out_fe(0x10);
-	vblank_delay(pitch);
+	delay_vblank(pitch);
 	out_fe(0x0);
-	vblank_delay(pitch);
+	delay_vblank(pitch);
     }
     vblank = 0;
 #endif

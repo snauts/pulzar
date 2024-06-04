@@ -758,6 +758,23 @@ static const char * const outro[] = {
     "        You did it!",
 };
 
+static void reverse(void) {
+    word *addr = (word *) (word) line_addr;
+    byte *data = (byte *) (word) line_data;
+    for (word y = 0; y < 0x1000; y += 32) {
+	for (word x = 0; x < 16; x++) {
+	    word i = y + x;
+	    word j = y + 31 - x;
+	    word tmp_addr = addr[i];
+	    byte tmp_data = data[i];
+	    addr[i] = addr[j];
+	    data[i] = data[j];
+	    addr[j] = tmp_addr;
+	    data[j] = tmp_data;
+	}
+    }
+}
+
 static void finish_game(void) {
     const byte *tune = music;
 
@@ -890,6 +907,7 @@ static void emit_slinger(void) {
     for (byte i = 0; i < 50; i++) {
 	wait_vblank();
     }
+    reverse();
     finish_game();
 }
 

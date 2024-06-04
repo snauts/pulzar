@@ -787,14 +787,14 @@ struct Channel {
     byte duration;
     byte period;
     byte volume;
-    byte num;
+    byte number;
 };
 
 static void play_note(struct Channel *channel) {
     channel;
 
 #ifdef CPC
-    byte number = channel->num;
+    byte number = channel->number;
     word period = channel->period;
     if (number == 0) period <<= 1;
 
@@ -818,14 +818,14 @@ static void next_note(struct Channel *channel) {
     channel->period = tune[0];
     channel->duration = 0;
     channel->volume = 0xf;
-    flash_title(channel->num);
+    flash_title(channel->number);
     play_note(channel);
 }
 
 static void advance_channel(struct Channel *channel) {
     byte duration = ++channel->duration;
     byte length = channel->tune[1];
-    byte number = channel->num;
+    byte number = channel->number;
     byte decay = length >> 1;
 
     if (duration >= decay) {
@@ -845,21 +845,14 @@ static void beeper(struct Channel *channel) {
     channel;
 
 #ifdef ZXS
-    for (byte i = 0; i < 2; i++) {
-	if (i == 0) {
-	    channel++;
-	    continue;
-	}
-	byte period = channel->period;
-	byte volume = channel->volume;
+    byte period = channel->period;
+    byte volume = channel->volume;
 
-	byte offset = period >> volume;
-	byte should = period > 0 && volume > 0;
-	if (should) out_fe(0x10);
-	delay(period - offset);
-	if (should) out_fe(0x00);
-	delay(period - offset);
-	channel++;
+    if (volume > 0) {
+	out_fe(0x10);
+	delay(period);
+	out_fe(0x00);
+	delay(period);
     }
 #endif
 }
@@ -874,24 +867,23 @@ static void finish_game(void) {
 	put_str(outro[i], 2, 17 + i, 0x42);
     }
 
-    const byte *base[] = { chord, music };
-    struct Channel channels[SIZE(base)];
-
-    for (byte i = 0; i < SIZE(base); i++) {
-	channels[i].num = i;
-	channels[i].tune = base[i];
-	next_note(channels + i);
+    static struct Channel channels[2];
+    for (byte i = 0; i < SIZE(channels); i++) {
+	struct Channel *ptr = channels + i;
+	ptr->tune = (i == 0 ? chord : music);
+	ptr->number = i;
+	next_note(ptr);
     }
 
     music_done = 0;
     while (!SPACE_DOWN()) {
 	if (!music_done) {
-	    beeper(channels);
+	    // beeper(channels + 0);
+	    beeper(channels + 1);
 
 	    if (is_vblank_start()) {
-		for (byte i = 0; i < SIZE(base); i++) {
-		    advance_channel(channels + i);
-		}
+		advance_channel(channels + 0);
+		advance_channel(channels + 1);
 	    }
 	}
     }

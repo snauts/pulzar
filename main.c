@@ -826,12 +826,13 @@ static void advance_channel(struct Channel *channel) {
     byte duration = ++channel->duration;
     byte length = channel->tune[1];
     byte number = channel->number;
+    byte volume = channel->volume;
     byte decay = length >> 1;
 
-    if (duration >= decay) {
+    if (duration >= decay && volume > 0) {
 	channel->volume >>= 1;
 	play_note(channel);
-	if (duration == decay) {
+	if (!channel->volume) {
 	    flash_title(number);
 	}
     }

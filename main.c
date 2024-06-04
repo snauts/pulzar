@@ -843,7 +843,7 @@ static void advance_channel(struct Channel *channel) {
 }
 
 static void beeper(struct Channel *channel) {
-    channel;
+    channel++;
 
 #ifdef ZXS
     byte period = channel->period;
@@ -879,13 +879,10 @@ static void finish_game(void) {
     music_done = 0;
     while (!SPACE_DOWN()) {
 	if (!music_done) {
-	    // beeper(channels + 0);
-	    beeper(channels + 1);
+	    beeper(channels);
 
 	    if (is_vblank_start()) {
-#ifdef CPC
 		advance_channel(channels + 0);
-#endif
 		advance_channel(channels + 1);
 	    }
 	}

@@ -883,7 +883,9 @@ static void finish_game(void) {
 	    beeper(channels + 1);
 
 	    if (is_vblank_start()) {
+#ifdef CPC
 		advance_channel(channels + 0);
+#endif
 		advance_channel(channels + 1);
 	    }
 	}

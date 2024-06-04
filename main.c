@@ -905,7 +905,7 @@ static void emit_slinger(void) {
     cpc_psg(8, 0x10);
 #endif
     for (byte i = 0; i < 50; i++) {
-	wait_vblank();
+	while (!is_vblank_start()) { }
     }
     reverse();
     finish_game();

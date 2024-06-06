@@ -31,7 +31,7 @@ zxs:
 dsk:
 	iDSK -n pulzar.dsk
 	iDSK pulzar.dsk -f -t 1 -c 1000 -e $(shell $(ENTRY)) -i pulzar.bin
-	2cdt -n -P -t 0 -F 2 -L 0x1000 -X 0x$(shell $(ENTRY)) \
+	2cdt -n -t 0 -F 2 -L 0x1000 -X 0x$(shell $(ENTRY)) \
 		-r pulzar pulzar.bin pulzar.cdt
 
 cpc:

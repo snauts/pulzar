@@ -702,8 +702,8 @@ static void emit_reverse(void) {
 #define G4	2138	// 392.0Hz
 #define A4	2400	// 440.0Hz
 
-#define L2	4
-#define L4	2
+#define L2	8
+#define L4	4
 #endif
 #ifdef CPC
 #define C4	239
@@ -752,16 +752,6 @@ static void delay(word loops) {
     for (word i = 0; i < loops; i++) { }
 }
 
-static void flash_title(byte number) {
-    if (number != 1) return;
-#ifdef ZXS
-    byte *ptr = (byte *) 0x5860;
-    while (ptr < (byte *) 0x5900) {
-	*(ptr++) ^= 0x40;
-    }
-#endif
-}
-
 static const char * const outro[] = {
     " Unbelievable! You did it.",
     "You crazy son of a Belgium,",
@@ -793,10 +783,8 @@ struct Channel {
     byte number;
 };
 
-static void play_note(struct Channel *channel) {
-    channel;
-
 #ifdef CPC
+static void play_note(struct Channel *channel) {
     byte number = channel->number;
     word period = channel->period;
     if (number == 0) period <<= 1;
@@ -808,8 +796,8 @@ static void play_note(struct Channel *channel) {
     }
 
     cpc_psg(8 + number, channel->volume);
-#endif
 }
+#endif
 
 static byte music_done;
 static void next_note(struct Channel *channel) {
@@ -821,8 +809,9 @@ static void next_note(struct Channel *channel) {
     channel->period = tune[0];
     channel->duration = 0;
     channel->volume = 0xf;
-    flash_title(channel->number);
+#ifdef CPC
     play_note(channel);
+#endif
 }
 
 static void advance_channel(struct Channel *channel) {
@@ -833,15 +822,12 @@ static void advance_channel(struct Channel *channel) {
     byte decay = length >> 1;
 
     if (duration >= decay && volume > 0) {
-#ifdef ZXS
-	channel->volume = 0;
-#else
+#ifdef CPC
 	channel->volume >>= 1;
-#endif
 	play_note(channel);
-	if (!channel->volume) {
-	    flash_title(number);
-	}
+#else
+	channel->volume = 0;
+#endif
     }
     if (duration >= length) {
 	channel->tune += 2;
@@ -862,7 +848,7 @@ static void beeper(struct Channel *channel) {
     word c1 = 0;
 
     __asm__("di");
-    for (word i = 0; i < 1200; i++) {
+    for (word i = 0; i < 600; i++) {
 	c0 += p0;
 	out_fe(c0 >= 32768 && v0 > 0 ? 0x10 : 0x00);
 	c1 += p1;
@@ -877,7 +863,6 @@ static void finish_game(void) {
     clear_screen();
     put_str("GAME COMPLETE", 9, 12, 0x42);
     draw_image(title, 4, 3, 24, 5);
-    flash_title(1);
 
     for (byte i = 0; i < SIZE(outro); i++) {
 	put_str(outro[i], 2, 17 + i, 0x42);

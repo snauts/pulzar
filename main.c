@@ -695,6 +695,8 @@ static void emit_reverse(void) {
 }
 
 #ifdef ZXS
+#define G3	1069	// 196.0Hz
+#define B3	1347	// 246.9Hz
 #define C4	1427	// 261.6Hz
 #define D4	1602	// 293.7Hz
 #define E4	1798	// 329.6Hz
@@ -702,10 +704,12 @@ static void emit_reverse(void) {
 #define G4	2138	// 392.0Hz
 #define A4	2400	// 440.0Hz
 
-#define L2	8
-#define L4	4
+#define L2	4
+#define L4	2
 #endif
 #ifdef CPC
+#define G3	318
+#define B3	253
 #define C4	239
 #define D4	213
 #define E4	190
@@ -728,9 +732,9 @@ static const word music[] = {
 };
 
 static const word chord[] = {
-    C4, L2, C4, L2, F4, L2, C4, L2, F4, L2, C4, L2, G4, L2, C4, L2,
+    C4, L2, E4, L2, F4, L2, E4, L2, D4, L2, C4, L2, G3, L4, B3, L4, C4, L2,
     C4, L2, F4, L2, C4, L2, G4, L2, C4, L2, F4, L2, C4, L2, G4, L2,
-    C4, L2, C4, L2, F4, L2, C4, L2, F4, L2, C4, L2, G4, L2, C4, L2,
+    C4, L2, E4, L2, F4, L2, E4, L2, D4, L2, C4, L2, G3, L4, B3, L4, C4, L2,
     0, 0
 };
 
@@ -848,7 +852,7 @@ static void beeper(struct Channel *channel) {
     word c1 = 0;
 
     __asm__("di");
-    for (word i = 0; i < 600; i++) {
+    for (word i = 0; i < 2048 / L4; i++) {
 	c0 += p0;
 	out_fe(c0 >= 32768 && v0 > 0 ? 0x10 : 0x00);
 	c1 += p1;

@@ -695,12 +695,15 @@ static void emit_reverse(void) {
 }
 
 #ifdef ZXS
-#define C4	169	// 261.6Hz
-#define D4	146	// 293.7Hz
-#define E4	129	// 329.6Hz
-#define F4	124	// 349.2Hz
-#define G4	109	// 392.0Hz
-#define A4	96	// 440.0Hz
+#define C4	1427	// 261.6Hz
+#define D4	1602	// 293.7Hz
+#define E4	1798	// 329.6Hz
+#define F4	1905	// 349.2Hz
+#define G4	2138	// 392.0Hz
+#define A4	2400	// 440.0Hz
+
+#define L2	4
+#define L4	2
 #endif
 #ifdef CPC
 #define C4	239
@@ -709,12 +712,12 @@ static void emit_reverse(void) {
 #define F4	179
 #define G4	159
 #define A4	142
-#endif
 
 #define L2	32
 #define L4	16
+#endif
 
-static const byte music[] = {
+static const word music[] = {
     C4, L4, C4, L4, G4, L4, G4, L4, A4, L4, A4, L4, G4, L2,
     F4, L4, F4, L4, E4, L4, E4, L4, D4, L4, D4, L4, C4, L2,
     G4, L4, G4, L4, F4, L4, F4, L4, E4, L4, E4, L4, D4, L2,
@@ -724,7 +727,7 @@ static const byte music[] = {
     0, 0
 };
 
-static const byte chord[] = {
+static const word chord[] = {
     C4, L2, C4, L2, F4, L2, C4, L2, F4, L2, C4, L2, G4, L2, C4, L2,
     C4, L2, F4, L2, C4, L2, G4, L2, C4, L2, F4, L2, C4, L2, G4, L2,
     C4, L2, C4, L2, F4, L2, C4, L2, F4, L2, C4, L2, G4, L2, C4, L2,
@@ -783,9 +786,9 @@ static void reverse(void) {
 }
 
 struct Channel {
-    const byte *tune;
+    const word *tune;
     byte duration;
-    byte period;
+    word period;
     byte volume;
     byte number;
 };
@@ -810,7 +813,7 @@ static void play_note(struct Channel *channel) {
 
 static byte music_done;
 static void next_note(struct Channel *channel) {
-    const byte *tune = channel->tune;
+    const word *tune = channel->tune;
     if (tune[1] == 0) {
 	music_done = 1;
 	return;
@@ -830,7 +833,11 @@ static void advance_channel(struct Channel *channel) {
     byte decay = length >> 1;
 
     if (duration >= decay && volume > 0) {
+#ifdef ZXS
+	channel->volume = 0;
+#else
 	channel->volume >>= 1;
+#endif
 	play_note(channel);
 	if (!channel->volume) {
 	    flash_title(number);
@@ -843,18 +850,26 @@ static void advance_channel(struct Channel *channel) {
 }
 
 static void beeper(struct Channel *channel) {
-    channel++;
+    channel;
 
 #ifdef ZXS
-    byte period = channel->period;
-    byte volume = channel->volume;
+    byte v0 = channel[0].volume;
+    word p0 = channel[0].period >> 1;
+    word c0 = 0;
 
-    if (volume > 0) {
-	out_fe(0x10);
-	delay(period);
-	out_fe(0x00);
-	delay(period);
+    byte v1 = channel[1].volume;
+    word p1 = channel[1].period;
+    word c1 = 0;
+
+    __asm__("di");
+    for (word i = 0; i < 1200; i++) {
+	c0 += p0;
+	out_fe(c0 >= 32768 && v0 > 0 ? 0x10 : 0x00);
+	c1 += p1;
+	out_fe(c1 >= 32768 && v1 > 0 ? 0x10 : 0x00);
     }
+    __asm__("ei");
+    vblank = 1;
 #endif
 }
 
